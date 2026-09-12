@@ -47,7 +47,8 @@ jobs:
     - name: Package Unix Binary
       if: runner.os != 'Windows'
       run: |
-        tar -czvf ${{ matrix.artifact }} -C build voltbill LICENSE README.md
+        cp build/voltbill .
+        tar -czvf ${{ matrix.artifact }} voltbill config/tariffs.cfg LICENSE README.md
 
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v2
