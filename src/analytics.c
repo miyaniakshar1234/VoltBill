@@ -1,7 +1,7 @@
 /**
  * @file analytics.c
  * @brief Implementation of visual analytics, charts, and carbon footprint.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "analytics.h"
@@ -41,13 +41,11 @@ void analytics_draw_barchart(const double *values, const char **labels, int coun
 }
 
 void analytics_print_carbon_footprint(double total_kwh, double solar_kwh) {
-    /* Standard thermal grid emission: ~0.82 kg CO2 per kWh */
     double co2_gross_kg = total_kwh * 0.82;
     double co2_avoided_kg = solar_kwh * 0.82;
     double co2_net_kg = (total_kwh - solar_kwh) * 0.82;
     if (co2_net_kg < 0.0) co2_net_kg = 0.0;
 
-    /* 1 Mature tree absorbs ~22 kg CO2 per year */
     double trees_needed = co2_net_kg / 22.0;
 
     printf("  " DBOX_TL);
@@ -102,7 +100,6 @@ void analytics_system_overview(void) {
         total_arrears += c->outstanding_arrears;
     }
 
-    /* Key Performance Indicators */
     printf("  " DBOX_TL);
     for (int i = 0; i < 74; i++) printf(DBOX_H);
     printf(DBOX_TR "\n");
@@ -126,13 +123,11 @@ void analytics_system_overview(void) {
     for (int i = 0; i < 74; i++) printf(DBOX_H);
     printf(DBOX_BR "\n\n");
 
-    /* Category breakdown chart */
     printf("  " CLR_WHITE CLR_BOLD "CONSUMPTION BREAKDOWN BY SECTOR (kWh):" CLR_RESET "\n\n");
     const char *cat_names[] = {"Domestic", "Commercial", "Industrial", "Agricultural"};
     analytics_draw_barchart(cat_units, cat_names, 4, 0.0);
     printf("\n");
 
-    /* Environmental Carbon Report */
     analytics_print_carbon_footprint(total_units_billed + total_solar_exported, total_solar_exported);
 
     pause_prompt();
@@ -153,7 +148,6 @@ void analytics_consumer_deepdive(void) {
 
     customer_render_card(c);
 
-    /* Gather consumer's bills */
     double history_units[12];
     const char *history_labels[12];
     char label_storage[12][32];
@@ -182,7 +176,6 @@ void analytics_consumer_deepdive(void) {
 
         analytics_print_carbon_footprint(latest_units, c->solar_capacity_kw * 120.0);
 
-        /* Intelligent Energy Saving Recommendations */
         printf("  " CLR_CYAN CLR_BOLD "⚡ INTELLIGENT ENERGY CONSERVATION ADVISORY:" CLR_RESET "\n");
         if (latest_units > 300.0) {
             printf("  " CLR_YELLOW "• High Tier Alert:" CLR_RESET " Your consumption falls in the highest tariff slab (Tier 4+).\n");

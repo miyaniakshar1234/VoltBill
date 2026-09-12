@@ -1,12 +1,12 @@
 # VoltBill One-Command Windows Installer
-# Lead Architect: Akshar Miyani (MCA 1st Sem, MUJ)
+# Lead Architect: Akshar Miyani
 # Usage: irm https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "`n  =========================================================================" -ForegroundColor Cyan
 Write-Host "    ⚡ Installing VoltBill Utility Engine (Windows x64)" -ForegroundColor White
-Write-Host "    Lead Architect: Akshar Miyani | MCA (1st Sem) | Manipal University Jaipur" -ForegroundColor Gray
+Write-Host "    Lead Architect: Akshar Miyani" -ForegroundColor Gray
 Write-Host "  =========================================================================`n" -ForegroundColor Cyan
 
 $InstallDir = "$env:LOCALAPPDATA\VoltBill\bin"

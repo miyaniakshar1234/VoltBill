@@ -1,7 +1,7 @@
 /**
  * @file customer.c
  * @brief Implementation of customer registration, search, and profile rendering.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "customer.h"
@@ -81,9 +81,13 @@ void customer_render_card(const Consumer *c) {
 
     printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "%-12s" CLR_RESET "  " CLR_WHITE CLR_BOLD "%-44s" CLR_RESET " ", c->id, c->name);
     if (c->is_active) {
-        printf(CLR_GREEN "[ACTIVE]" CLR_RESET "   " DBOX_V "\n");
+        if (c->is_flagged_for_disconnection) {
+            printf(CLR_YELLOW "[NOTICE SERVED]" CLR_RESET " " DBOX_V "\n");
+        } else {
+            printf(CLR_GREEN "[ACTIVE]" CLR_RESET "        " DBOX_V "\n");
+        }
     } else {
-        printf(CLR_RED "[INACTIVE]" CLR_RESET " " DBOX_V "\n");
+        printf(CLR_RED "[DISCONNECTED]" CLR_RESET " " DBOX_V "\n");
     }
 
     printf("  " DBOX_T_RIGHT);
@@ -116,6 +120,17 @@ void customer_render_card(const Consumer *c) {
     printf("  " DBOX_BL);
     for (int i = 0; i < 74; i++) printf(DBOX_H);
     printf(DBOX_BR "\n\n");
+}
+
+void customer_quick_status(const char *consumer_id) {
+    Consumer *c = customer_find_by_id(consumer_id);
+    if (!c) {
+        printf("VoltBill: Consumer '%s' not found.\n", consumer_id);
+        return;
+    }
+    printf("Consumer: %s (%s) | Meter: %s | Load: %.2f kW | Category: %s | Arrears: Rs. %.2f | Status: %s\n",
+           c->id, c->name, c->meter_no, c->sanctioned_load_kw, category_to_string(c->category),
+           c->outstanding_arrears, c->is_active ? "Active" : "Disconnected");
 }
 
 void customer_register_flow(void) {
@@ -192,13 +207,17 @@ void customer_register_flow(void) {
     c.outstanding_arrears = 0.0;
     c.advance_credit = 0.0;
     c.is_active = 1;
+    c.is_flagged_for_disconnection = 0;
     get_current_date(c.registered_date, sizeof(c.registered_date));
 
     customer_add_record(&c);
 
-    /* Save to storage */
     extern int storage_save_all(void);
     storage_save_all();
+
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "Registered consumer %s (%s, %.1f kW)", c.id, c.name, c.sanctioned_load_kw);
+    audit_log("CONSUMER_REGISTER", audit_desc);
 
     char msg[128];
     snprintf(msg, sizeof(msg), "Consumer %s (%s) registered successfully!", c.id, c.name);
@@ -231,6 +250,13 @@ void customer_list_all(void) {
         else if (c->category == CAT_INDUSTRIAL) cat_short = "Industrial";
         else if (c->category == CAT_AGRICULTURAL) cat_short = "Agri";
 
+        const char *st_clr = c->is_active ? CLR_GREEN : CLR_RED;
+        const char *st_txt = c->is_active ? "Active" : "Disconnected";
+        if (c->is_active && c->is_flagged_for_disconnection) {
+            st_clr = CLR_YELLOW;
+            st_txt = "Notice";
+        }
+
         printf("  " CLR_GRAY "│ " CLR_CYAN "%-8s" CLR_RESET CLR_GRAY "│ " 
                CLR_WHITE "%-24.24s" CLR_RESET CLR_GRAY "│ " 
                CLR_YELLOW "%-12s" CLR_RESET CLR_GRAY "│ " 
@@ -238,7 +264,7 @@ void customer_list_all(void) {
                CLR_WHITE "%7.2f " CLR_RESET CLR_GRAY "│ " 
                "%s%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
                c->id, c->name, cat_short, c->meter_no, c->sanctioned_load_kw,
-               c->is_active ? CLR_GREEN : CLR_RED, c->is_active ? "Active" : "Inactive");
+               st_clr, st_txt);
     }
 
     printf("  " CLR_GRAY "└──────────┴──────────────────────────┴──────────────┴─────────────┴──────────┴───────────┘" CLR_RESET "\n");
@@ -262,7 +288,6 @@ void customer_search_flow(void) {
 
     if (query[0] == '\0') return;
 
-    /* Search by exact ID */
     Consumer *found = customer_find_by_id(query);
     if (found) {
         printf("\n  " CLR_GREEN "✓ Consumer ID match found:" CLR_RESET "\n\n");
@@ -271,7 +296,6 @@ void customer_search_flow(void) {
         return;
     }
 
-    /* Search by meter */
     found = customer_find_by_meter(query);
     if (found) {
         printf("\n  " CLR_GREEN "✓ Meter Serial match found:" CLR_RESET "\n\n");
@@ -280,7 +304,6 @@ void customer_search_flow(void) {
         return;
     }
 
-    /* Substring search in name */
     int match_count = 0;
     char query_lower[64];
     for (size_t i = 0; i < sizeof(query_lower) && query[i]; i++) {
@@ -352,11 +375,130 @@ void customer_edit_flow(void) {
         c->solar_capacity_kw = get_safe_double("  Enter New Solar Capacity in kW: ", 0.0, 100.0);
     } else if (choice == 6) {
         c->is_active = !c->is_active;
-        printf("  Status switched to: %s\n", c->is_active ? "ACTIVE" : "INACTIVE");
+        printf("  Status switched to: %s\n", c->is_active ? "ACTIVE" : "DISCONNECTED");
     }
 
     extern int storage_save_all(void);
     storage_save_all();
 
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "Modified profile for consumer %s", c->id);
+    audit_log("CONSUMER_EDIT", audit_desc);
+
     ui_message_box("Profile Updated", "Consumer record updated successfully!", 1);
+}
+
+void customer_defaulters_flow(void) {
+    ui_header("DEFAULTER LEDGER & DISCONNECTION NOTICES", "Flag Consumers with Outstanding Arrears & Issue Legal Notices");
+
+    double threshold = get_safe_double("  Enter Arrears Threshold for Defaulter Screening (₹): ₹ ", 0.0, 1000000.0);
+
+    int defaulter_count = 0;
+    Consumer *defaulters[MAX_CONSUMERS];
+
+    for (int i = 0; i < g_consumer_count; i++) {
+        if (g_consumers[i].outstanding_arrears >= threshold && g_consumers[i].is_active) {
+            defaulters[defaulter_count++] = &g_consumers[i];
+        }
+    }
+
+    if (defaulter_count == 0) {
+        ui_message_box("Zero Defaulters", "No active consumers found exceeding specified arrears threshold.", 1);
+        return;
+    }
+
+    printf("\n  " CLR_GRAY "┌──────────┬──────────────────────────┬────────────────┬──────────────────┐" CLR_RESET "\n");
+    printf("  " CLR_GRAY "│ " CLR_CYAN CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-24s" CLR_RESET CLR_GRAY "│ " 
+           CLR_RED CLR_BOLD "%-14s" CLR_RESET CLR_GRAY "│ " 
+           CLR_YELLOW CLR_BOLD "%-16s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+           "ID", "Consumer Name", "Arrears (₹)", "Notice Status");
+    printf("  " CLR_GRAY "├──────────┼──────────────────────────┼────────────────┼──────────────────┤" CLR_RESET "\n");
+
+    for (int i = 0; i < defaulter_count; i++) {
+        Consumer *d = defaulters[i];
+        printf("  " CLR_GRAY "│ " CLR_CYAN "%-8s" CLR_RESET CLR_GRAY "│ " 
+               CLR_WHITE "%-24.24s" CLR_RESET CLR_GRAY "│ " 
+               CLR_RED "₹ %12.2f" CLR_RESET CLR_GRAY "│ " 
+               CLR_YELLOW "%-16s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+               d->id, d->name, d->outstanding_arrears,
+               d->is_flagged_for_disconnection ? "Notice Served" : "Pending Action");
+    }
+    printf("  " CLR_GRAY "└──────────┴──────────────────────────┴────────────────┴──────────────────┘" CLR_RESET "\n\n");
+
+    printf("  " CLR_CYAN "Actions:" CLR_RESET "\n");
+    printf("    [1] Generate Official Disconnection Notice for a Consumer\n");
+    printf("    [2] Disconnect Power Supply for Flagged Defaulter\n");
+    printf("    [0] Return\n");
+
+    int action = get_safe_int("  Select Action [0-2]: ", 0, 2);
+    if (action == 1) {
+        printf("  Enter Consumer ID to serve notice: ");
+        char cid[ID_LEN];
+        get_safe_string(cid, sizeof(cid));
+        Consumer *target = customer_find_by_id(cid);
+        if (target) {
+            target->is_flagged_for_disconnection = 1;
+            ensure_directory("data/notices");
+            char notice_path[128];
+            snprintf(notice_path, sizeof(notice_path), "data/notices/NOTICE_%s.txt", target->id);
+
+            FILE *nfp = fopen(notice_path, "w");
+            if (nfp) {
+                char today[DATE_LEN], final_date[DATE_LEN];
+                get_current_date(today, sizeof(today));
+                compute_due_date(today, 7, final_date, sizeof(final_date));
+
+                fprintf(nfp, "========================================================================\n");
+                fprintf(nfp, "                   VOLTBILL UTILITY DISTRIBUTION CORP                   \n");
+                fprintf(nfp, "              OFFICIAL FINAL POWER DISCONNECTION NOTICE                \n");
+                fprintf(nfp, "========================================================================\n");
+                fprintf(nfp, "Notice Date: %s                                     Ref: DISC-%s\n", today, target->id);
+                fprintf(nfp, "To:\n");
+                fprintf(nfp, "  Consumer ID : %s\n", target->id);
+                fprintf(nfp, "  Name        : %s\n", target->name);
+                fprintf(nfp, "  Meter No    : %s\n", target->meter_no);
+                fprintf(nfp, "  Address     : %s\n\n", target->address);
+                fprintf(nfp, "DEMAND STATEMENT:\n");
+                fprintf(nfp, "  Our records show that your electricity account has an outstanding\n");
+                fprintf(nfp, "  unpaid balance of Rs. %.2f.\n\n", target->outstanding_arrears);
+                fprintf(nfp, "FINAL SETTLEMENT DEADLINE: %s\n\n", final_date);
+                fprintf(nfp, "Please note that failure to clear the outstanding balance by %s\n", final_date);
+                fprintf(nfp, "will result in IMMEDIATE PHYSICAL DISCONNECTION of your power service.\n");
+                fprintf(nfp, "Reconnection will attract a statutory restoration surcharge of Rs. 500.00.\n");
+                fprintf(nfp, "========================================================================\n");
+                fprintf(nfp, "Issued by VoltBill Utility System Engine | Author: Akshar Miyani\n");
+                fclose(nfp);
+
+                char audit_desc[128];
+                snprintf(audit_desc, sizeof(audit_desc), "Served disconnection notice to %s (Arrears: Rs. %.2f)", target->id, target->outstanding_arrears);
+                audit_log("DISCONNECT_NOTICE", audit_desc);
+
+                extern int storage_save_all(void);
+                storage_save_all();
+
+                char msg[128];
+                snprintf(msg, sizeof(msg), "Notice generated and saved to %s", notice_path);
+                ui_message_box("Notice Issued", msg, 1);
+            }
+        } else {
+            ui_message_box("Not Found", "Consumer ID was not found.", 0);
+        }
+    } else if (action == 2) {
+        printf("  Enter Consumer ID to disconnect: ");
+        char cid[ID_LEN];
+        get_safe_string(cid, sizeof(cid));
+        Consumer *target = customer_find_by_id(cid);
+        if (target) {
+            target->is_active = 0;
+            extern int storage_save_all(void);
+            storage_save_all();
+
+            char audit_desc[128];
+            snprintf(audit_desc, sizeof(audit_desc), "Disconnected power supply for %s", target->id);
+            audit_log("POWER_DISCONNECTED", audit_desc);
+
+            ui_message_box("Power Disconnected", "Consumer supply marked DISCONNECTED in the grid ledger.", 1);
+        }
+    }
 }

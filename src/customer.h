@@ -1,7 +1,7 @@
 /**
  * @file customer.h
  * @brief Customer registration, profile lookup, search, and lifecycle management.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef CUSTOMER_H
@@ -53,6 +53,16 @@ void customer_list_all(void);
  * @brief Interactive workflow to edit an existing customer profile.
  */
 void customer_edit_flow(void);
+
+/**
+ * @brief Workflow to inspect high arrears and issue disconnection notices.
+ */
+void customer_defaulters_flow(void);
+
+/**
+ * @brief Displays quick single-screen status for CLI queries.
+ */
+void customer_quick_status(const char *consumer_id);
 
 /**
  * @brief Renders a detailed graphical profile card for a customer.

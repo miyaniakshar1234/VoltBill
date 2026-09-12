@@ -1,5 +1,5 @@
 # VoltBill Makefile
-# Lead Architect: Akshar Miyani (MCA 1st Sem, MUJ)
+# Lead Architect: Akshar Miyani
 
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -std=c99 -D_POSIX_C_SOURCE=200809L

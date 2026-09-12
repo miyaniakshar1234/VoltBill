@@ -1,7 +1,7 @@
 /**
  * @file utils.c
  * @brief Implementation of cross-platform utility routines.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "utils.h"
@@ -52,6 +52,9 @@ void init_console(void) {
     /* Ensure data and config directories exist */
     ensure_directory("data");
     ensure_directory("config");
+    ensure_directory("data/bills");
+    ensure_directory("data/notices");
+    ensure_directory("data/backups");
 }
 
 void restore_console(void) {
@@ -73,7 +76,6 @@ void restore_console(void) {
 }
 
 void clear_screen(void) {
-    /* ANSI clear screen and reset cursor to home */
     printf("\033[2J\033[H");
     fflush(stdout);
 }
@@ -111,7 +113,7 @@ int read_key(void) {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 
     int ch = getchar();
-    if (ch == 27) { /* Escape sequence */
+    if (ch == 27) {
         int seq1 = getchar();
         if (seq1 == '[') {
             int seq2 = getchar();
@@ -137,7 +139,7 @@ int read_key(void) {
 }
 
 void pause_prompt(void) {
-    printf("\n  \033[90m[Press any key to return...]\033[0m ");
+    printf("\n  \033[90m[Press any key to continue...]\033[0m ");
     fflush(stdout);
     read_key();
 }
@@ -158,11 +160,9 @@ void get_safe_string(char *dest, size_t max_len) {
             len--;
         }
 
-        /* Trim leading whitespace */
         char *start = buffer;
         while (*start && isspace((unsigned char)*start)) start++;
 
-        /* Trim trailing whitespace */
         char *end = start + strlen(start) - 1;
         while (end > start && isspace((unsigned char)*end)) {
             *end = '\0';
@@ -262,12 +262,17 @@ void compute_due_date(const char *base_date, int days_ahead, char *buffer, size_
     snprintf(buffer, len, "%s", base_date);
 }
 
+int is_date_overdue(const char *due_date) {
+    char current_date[32];
+    get_current_date(current_date, sizeof(current_date));
+    return strcmp(due_date, current_date) < 0;
+}
+
 void get_current_billing_cycle(char *buffer, size_t len) {
     time_t t = time(NULL);
     struct tm *tm_info = localtime(&t);
     if (tm_info) {
         strftime(buffer, len, "%b-%Y", tm_info);
-        /* Uppercase */
         for (char *p = buffer; *p; ++p) *p = (char)toupper((unsigned char)*p);
     } else {
         snprintf(buffer, len, "SEP-2026");
@@ -284,4 +289,15 @@ int ensure_directory(const char *path) {
 #else
     return mkdir(path, 0755);
 #endif
+}
+
+void audit_log(const char *action, const char *details) {
+    ensure_directory("data");
+    FILE *fp = fopen("data/audit_trail.log", "a");
+    if (!fp) return;
+
+    char timestamp[32];
+    get_current_timestamp(timestamp, sizeof(timestamp));
+    fprintf(fp, "[%s] ACTION: %-20s | DETAILS: %s\n", timestamp, action, details ? details : "");
+    fclose(fp);
 }

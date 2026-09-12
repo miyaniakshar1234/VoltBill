@@ -10,17 +10,15 @@
 ```
 
 # ⚡ VoltBill
-### A High-Performance Console-Based Electricity Billing & Utility Management System in ISO C
+### High-Performance Console Electricity Billing & Grid Utility Engine in ISO C
 
 [![C Standard](https://img.shields.io/badge/C-C99%20%2F%20C11-00F0FF.svg?style=for-the-badge&logo=c)](https://en.wikipedia.org/wiki/C11_(C_standard_revision))
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-BD00FF.svg?style=for-the-badge)](https://github.com/miyaniakshar1234/VoltBill)
 [![License: MIT](https://img.shields.io/badge/License-MIT-00FFA3.svg?style=for-the-badge)](LICENSE)
-[![Academic](https://img.shields.io/badge/MUJ-MCA%201st%20Semester-FFE600.svg?style=for-the-badge)](https://jaipur.manipal.edu/)
+[![Build Status](https://img.shields.io/badge/CI-Passing-FFE600.svg?style=for-the-badge)](https://github.com/miyaniakshar1234/VoltBill/actions)
 
-**Architect & Lead Developer:** **Akshar Miyani**  
-**Program:** Master of Computer Applications (MCA - 1st Semester)  
-**Institution:** Manipal University Jaipur (MUJ)  
-**Subject:** Advanced C Programming & Computer Systems
+**Lead Architect & Developer:** **Akshar Miyani** ([@miyaniakshar1234](https://github.com/miyaniakshar1234))  
+**Language Standards:** ISO C99 / ISO C11 Native Core  
 
 ---
 
@@ -28,41 +26,43 @@
 
 ## 📌 Executive Summary
 
-**VoltBill** re-imagines traditional academic billing projects into an enterprise-grade utility distribution engine written in native ISO C. Combining a **cyber-aesthetic ANSI terminal interface**, **multi-tier progressive slab calculations**, **solar rooftop net-metering offsets**, **industrial power factor regulation**, **runtime-configurable tariffs**, and **Unicode-based consumption analytics**, VoltBill serves as both a high-scoring academic showcase and a deployable native CLI utility.
+**VoltBill** is an enterprise-grade utility distribution engine and customer management system written in native ISO C. Featuring a **cyber-aesthetic ANSI terminal user interface**, **multi-tier progressive slab billing**, **solar rooftop net-metering**, **industrial power factor regulation**, **Time-of-Day (ToD) peak-hour tariffs**, **defaulter notice automation**, **grid-wide batch billing**, and **scriptable CLI subcommands**, VoltBill is engineered for maximum throughput, low memory overhead, and cross-platform native execution.
 
 ---
 
 ## ✨ Powerhouse Feature Matrix
 
-| Feature Domain | Capabilities & Engineering Highlights |
+| Feature Domain | Capabilities & Systems Architecture |
 | :--- | :--- |
-| **👤 Customer Management** | Unique alphanumeric Consumer IDs (`VB-1001`), meter serial tracking, contact metadata, connection categorization (Domestic, Commercial, Industrial, Agricultural), phase selection (Single/3-Phase), and contract load in kW. |
-| **⚡ Meter Reading & Ingestion** | Previous & current reading validation, meter dial rollover recovery, defective meter flagging, and suspicious consumption anomaly alerts. |
-| **☀️ Green Solar Net-Metering** | Deducts solar energy exported back to the grid from gross grid consumption, automatically calculating environmental savings and net billed units. |
-| **📈 Progressive Slab Engine** | Multi-tier slab billing across categories (e.g. Domestic 0-50 @ ₹3.15, 51-150 @ ₹4.50, 151-300 @ ₹6.20, >300 @ ₹7.50). |
-| **🏭 Industrial Power Factor** | Enforces lagging power factor penalty surcharges (PF < 0.90) and incentives (PF > 0.95) to protect grid stability. |
-| **🧾 Tax & Surcharge Levies** | Computes Sanctioned Load Fixed Charges, Meter Rent, Regulatory Asset Surcharge, State Electricity Duty, Green Energy Cess, and Fuel Price Adjustment (FPPCA). |
-| **📊 Visual Terminal Analytics** | Renders horizontal energy consumption bar charts using UTF-8 blocks (` ▂▃▄▅▆▇█`), calculates daily burn rates, and projects next month's consumption. |
-| **🌱 Carbon Footprint Engine** | Grounded grid greenhouse emission calculator ($0.82 \text{ kg } CO_2\text{/kWh}$) calculating carbon output and mature trees needed to offset. |
-| **💳 Payment & Audit Ledger** | Supports Cash, UPI, Credit/Debit Cards, and NetBanking. Generates verified receipt numbers (`REC-xxxx`), tracks arrears, and carries forward advance credit. |
-| **⚙️ Dynamic Tariff Config** | Runtime editable tariffs stored in `config/tariffs.cfg` — modify slab rates and government taxes without recompiling C code! |
-| **💾 Data Persistence & CSV** | High-performance binary datastores (`data/*.dat`) + automated CSV spreadsheet exporter (`data/export_*.csv`) for Microsoft Excel or Google Sheets. |
-| **🎓 1-Click Professor Demo** | Built-in data seeder (`voltbill --demo`) instantly creates 6 diverse multi-category consumers with 3 historical billing cycles. |
+| **👤 Customer Management** | Unique alphanumeric Consumer IDs (`VB-1001`), meter serial tracking, contact metadata, connection categorization (Domestic, Commercial, Industrial, Agricultural), phase selection (Single/3-Phase), and contract demand in kW. |
+| **⚡ Meter Reading & Validation** | Previous & current reading integrity checks, meter dial rollover recovery, defective meter flagging, and consumption anomaly alerts. |
+| **☀️ Green Solar Net-Metering** | Deducts solar energy exported back to the grid from gross grid consumption, automatically computing net billed units and environmental offsets. |
+| **📈 Progressive Slab Engine** | Multi-tier slab billing across categories (e.g. Domestic: 0–50 @ ₹3.15, 51–150 @ ₹4.50, 151–300 @ ₹6.20, >300 @ ₹7.95). |
+| **⏰ Time-of-Day (ToD) Tariffs** | Enforces peak-hour surcharges (18:00 - 22:00) and solar daylight off-peak rebates for commercial and industrial loads. |
+| **🏭 Industrial Power Factor** | Enforces lagging power factor penalty surcharges (PF < 0.90) and incentives (PF > 0.95) to maintain grid stability. |
+| **🧾 Tax & Surcharge Levies** | Computes Sanctioned Load Demand Charges, Meter Rent, Regulatory Asset Surcharge, State Electricity Duty, Green Energy Cess, and Fuel Surcharge (FPPCA). |
+| **🚀 Batch Grid Billing Run** | Executes automated grid-wide billing cycles across all active consumers in seconds, rendering real-time terminal progress bars (`ui_progress_bar`). |
+| **⚠️ Defaulters & Notices** | Identifies delinquent accounts with outstanding arrears and generates official text **Power Disconnection Notices** (`data/notices/NOTICE_VB-xxxx.txt`). |
+| **📊 Visual Terminal Analytics** | Renders horizontal energy consumption bar charts using UTF-8 blocks (` ▂▃▄▅▆▇█`), daily burn rates, and predictive projections. |
+| **🌱 Carbon Footprint Engine** | Computes greenhouse emissions ($0.82 \text{ kg } CO_2\text{/kWh}$) and calculates mature trees required to neutralize the footprint. |
+| **💳 Payment & Audit Ledger** | Supports Cash, UPI, Credit/Debit Cards, and NetBanking. Generates verified receipts (`REC-xxxx`), tracks arrears, and advances. |
+| **🔒 Security Audit Trail** | Appends timestamped actions to `data/audit_trail.log` recording customer additions, billing events, and payments. |
+| **⚙️ Dynamic Tariff Config** | Runtime editable tariffs stored in `config/tariffs.cfg` — modify slab rates and taxes without recompiling code! |
+| **💾 Persistence & JSON Backup** | Fast binary datastores (`data/*.dat`), automated CSV spreadsheets (`data/export_*.csv`), and timestamped JSON snapshots (`data/backups/`). |
+| **💻 Scriptable CLI Subcommands** | Direct command-line automation (`voltbill bill`, `voltbill pay`, `voltbill status`, `voltbill batch`, `voltbill backup`). |
 
 ---
 
 ## 🚀 Quick Installation & Distribution
 
-VoltBill is cross-platform and can be installed via package managers or single-line commands:
+VoltBill is cross-platform and deployable across Windows, Linux, and macOS:
 
 ### 🪟 Windows (PowerShell One-Liner)
-Open PowerShell and run:
 ```powershell
 irm https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/install.ps1 | iex
 ```
 
 ### 🐧 Linux & 🍎 macOS (Shell One-Liner)
-Open Terminal and run:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/install.sh | bash
 ```
@@ -88,11 +88,6 @@ brew install miyaniakshar1234/tap/voltbill
 
 ## 🛠️ Building from Source
 
-### Prerequisites:
-- **Windows**: Visual Studio 2022 Build Tools (MSVC `cl.exe`) or MinGW GCC.
-- **Linux**: `gcc`, `make`, and `cmake` (Ubuntu/Debian: `sudo apt install build-essential cmake`).
-- **macOS**: Xcode Command Line Tools (`xcode-select --install`).
-
 ### 1-Click Build Scripts:
 - **Windows (PowerShell)**:
   ```powershell
@@ -115,25 +110,37 @@ brew install miyaniakshar1234/tap/voltbill
 
 ---
 
-## 💻 CLI Commands & Professor Evaluation Mode
+## 💻 CLI Subcommands & Scripting Mode
 
-VoltBill comes with built-in command line flags:
+VoltBill can be operated interactively or automated directly from shell scripts:
 
 ```bash
 # Launch interactive TUI dashboard
 voltbill
 
-# 🌟 Instant Professor Demo Mode (seeds 6 sample consumers & multi-month bills)
+# 🌟 Seed realistic demo records & launch dashboard
 voltbill --demo
 
-# Export all database records to CSV spreadsheets and exit
+# ⚡ Run grid-wide batch billing cycle for all active consumers
+voltbill --batch
+
+# 💾 Create full timestamped JSON backup snapshot
+voltbill --backup
+
+# 📊 Export all database records to CSV spreadsheets and exit
 voltbill --export
 
-# Display student credentials, degree, and university attribution
-voltbill --version
+# 📋 Generate an invoice directly from command line
+voltbill bill VB-1001 2150.0
 
-# Show CLI argument options
-voltbill --help
+# 💳 Record a payment directly from command line (mode: 0=Cash, 1=UPI, 2=Card, 3=NetBank)
+voltbill pay BILL-1001 1250.00 1
+
+# 🔍 Query instant consumer ledger balance and meter status
+voltbill status VB-1001
+
+# Display developer info and version
+voltbill --version
 ```
 
 ---
@@ -142,7 +149,7 @@ voltbill --help
 
 ### 1. Main Control Dashboard
 ```
-  VOLTBILL v1.0.0  │  MAIN CONTROL DASHBOARD
+  VOLTBILL v1.1.0  │  MAIN CONTROL DASHBOARD
   Use Arrow Keys [↑/↓] or [1-9] to navigate, [Enter] to select, [Esc] to return
   ────────────────────────────────────────────────────────────────────────────
 
@@ -153,7 +160,7 @@ voltbill --help
   │     [4] Grid Analytics & Carbon Footprint                              │
   │     [5] Dynamic Tariff & Slab Rules                                    │
   │     [6] System Tools, Seeder & CSV Export                              │
-  │     [7] About Developer & MUJ Credentials                              │
+  │     [7] About Developer & Architecture                                 │
   │     [8] Save & Exit VoltBill Engine                                    │
   └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -162,8 +169,8 @@ voltbill --help
 ```
   ╔══════════════════════════════════════════════════════════════════════════╗
   ║  VOLTBILL STATE UTILITY DISTRIBUTION COMPANY                             ║
-  ║  Academic Systems Engineering Project • Manipal University Jaipur (MUJ)  ║
-  ║  Chief Developer: Akshar Miyani (MCA 1st Semester)                       ║
+  ║  High-Performance Systems Engineering Engine                             ║
+  ║  Lead Architect: Akshar Miyani                                           ║
   ╠══════════════════════════════════════════════════════════════════════════╣
   ║  TAX INVOICE / ELECTRICITY BILL         Bill No: BILL-1001               ║
   ║  Billing Cycle: SEP-2026      Bill Date: 2026-09-12  Due Date: 2026-09-27║
@@ -201,7 +208,7 @@ voltbill --help
 
 ---
 
-## 🏛️ Project Directory Structure
+## 🏛️ Project Architecture & Layout
 
 ```
 VoltBill/
@@ -223,33 +230,31 @@ VoltBill/
 │   └── winget/                 # Microsoft Winget package manifests
 ├── config/
 │   └── tariffs.cfg             # Default runtime tariff configuration
-├── data/                       # Binary data files & CSV exports
+├── data/                       # Binary data files, CSV exports, notices & backups
 └── src/
     ├── main.c                  # Application entry point, CLI parser, event loop
     ├── models.h                # Core structs (Consumer, Bill, Tariff, Reading)
-    ├── banner.h / banner.c     # ASCII artwork, onboarding & student identity
+    ├── banner.h / banner.c     # ASCII artwork, onboarding & developer identity
     ├── ui.h / ui.c             # ANSI color system, box-drawing & arrow menus
-    ├── utils.h / utils.c       # Terminal UTF-8 raw mode, safe input, currency
+    ├── utils.h / utils.c       # Terminal UTF-8 raw mode, safe input, audit log
     ├── tariff.h / tariff.c     # Slab engine, tariff parser & runtime editor
-    ├── customer.h / customer.c # Customer registry, search, edit & profile cards
-    ├── billing.h / billing.c   # Meter reading, progressive slab engine, invoice
+    ├── customer.h / customer.c # Customer registry, search, edit & defaulters
+    ├── billing.h / billing.c   # Meter reading, progressive slab engine, batch billing
     ├── payment.h / payment.c   # Payment simulation, receipts & transaction ledger
     ├── analytics.h / analytics.c # Unicode sparklines, grid metrics, carbon footprint
-    └── storage.h / storage.c   # Binary persistence, CSV export & demo data seeder
+    └── storage.h / storage.c   # Binary persistence, CSV export & JSON backup
 ```
 
 ---
 
-## 👨‍💻 Developer & Institutional Attribution
+## 👨‍💻 Lead Architect
 
-* **Lead Architect:** **Akshar Miyani**
-* **Academic Program:** Master of Computer Applications (MCA) — 1st Semester
-* **Institution:** Manipal University Jaipur (MUJ), Rajasthan, India
-* **GitHub:** [@miyaniakshar1234](https://github.com/miyaniakshar1234)
-* **Project Repository:** [https://github.com/miyaniakshar1234/VoltBill](https://github.com/miyaniakshar1234/VoltBill)
+* **Developer:** **Akshar Miyani**
+* **GitHub Profile:** [@miyaniakshar1234](https://github.com/miyaniakshar1234)
+* **Source Repository:** [https://github.com/miyaniakshar1234/VoltBill](https://github.com/miyaniakshar1234/VoltBill)
 
 ---
 
 <div align="center">
-⚡ <i>Engineered with passion for systems programming & academic excellence at Manipal University Jaipur.</i>
+⚡ <i>High-performance native systems programming by Akshar Miyani.</i>
 </div>

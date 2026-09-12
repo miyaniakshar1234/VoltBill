@@ -1,7 +1,7 @@
 /**
  * @file tariff.h
  * @brief Dynamic tariff configuration, slab rules, and surcharge engine.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef TARIFF_H
@@ -30,7 +30,7 @@ int tariff_save_to_file(void);
 int tariff_load_from_file(void);
 
 /**
- * @brief Resets tariffs to academic standard defaults.
+ * @brief Resets tariffs to standard defaults.
  */
 void tariff_reset_defaults(void);
 

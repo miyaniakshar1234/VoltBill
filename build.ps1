@@ -1,10 +1,13 @@
 # VoltBill Native C Build Script for PowerShell
-# Lead Architect: Akshar Miyani (MCA 1st Sem, MUJ)
+# Lead Architect: Akshar Miyani
 
 Write-Host "=========================================================================" -ForegroundColor Cyan
 Write-Host "  ⚡ VoltBill Native C Build System (PowerShell)" -ForegroundColor White
-Write-Host "  Lead Architect: Akshar Miyani (MCA 1st Sem, MUJ)" -ForegroundColor Gray
+Write-Host "  Lead Architect: Akshar Miyani" -ForegroundColor Gray
 Write-Host "=========================================================================`n" -ForegroundColor Cyan
+
+Get-Process voltbill -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 200
 
 New-Item -ItemType Directory -Force -Path "bin", "data", "config" | Out-Null
 

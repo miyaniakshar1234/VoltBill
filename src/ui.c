@@ -1,7 +1,7 @@
 /**
  * @file ui.c
  * @brief Implementation of terminal user interface and interactive widgets.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "ui.h"
@@ -13,7 +13,7 @@
 void ui_header(const char *title, const char *subtitle) {
     clear_screen();
     printf("\n");
-    printf("  " CLR_CYAN CLR_BOLD "VOLTBILL" CLR_RESET " " CLR_GRAY "v1.0.0" CLR_RESET "  " 
+    printf("  " CLR_CYAN CLR_BOLD "VOLTBILL" CLR_RESET " " CLR_GRAY "v1.1.0" CLR_RESET "  " 
            CLR_DARK_GRAY "│" CLR_RESET "  " CLR_VIOLET "%s" CLR_RESET "\n", title ? title : "");
     if (subtitle && subtitle[0] != '\0') {
         printf("  " CLR_GRAY "%s" CLR_RESET "\n", subtitle);
@@ -62,9 +62,9 @@ void ui_status_bar(const char *left_text, const char *right_text) {
     printf("\n  " CLR_DARK_GRAY);
     for (int i = 0; i < 76; i++) printf("─");
     printf(CLR_RESET "\n");
-    printf("  " CLR_GRAY "%-45s" CLR_RESET " " CLR_VIOLET "%29s" CLR_RESET "\n",
+    printf("  " CLR_GRAY "%-50s" CLR_RESET " " CLR_VIOLET "%24s" CLR_RESET "\n",
            left_text ? left_text : "VoltBill Utility Engine",
-           right_text ? right_text : "Akshar Miyani (MCA, MUJ)");
+           right_text ? right_text : "Akshar Miyani");
 }
 
 void ui_badge(const char *label, const char *color) {
@@ -89,7 +89,6 @@ int ui_menu(const char *title, const char **options, int count, int default_idx)
     int current = (default_idx >= 0 && default_idx < count) ? default_idx : 0;
 
     while (1) {
-        /* Save cursor or redraw menu block */
         ui_header(title, "Use Arrow Keys [↑/↓] or [1-9] to navigate, [Enter] to select, [Esc] to return");
 
         printf("  " CLR_GRAY "┌────────────────────────────────────────────────────────────────────────┐" CLR_RESET "\n");
@@ -104,7 +103,7 @@ int ui_menu(const char *title, const char **options, int count, int default_idx)
         }
         printf("  " CLR_GRAY "└────────────────────────────────────────────────────────────────────────┘" CLR_RESET "\n");
 
-        ui_status_bar("Navigate: ↑ / ↓  |  Select: Enter  |  Exit: Esc", "Akshar Miyani • MUJ");
+        ui_status_bar("Navigate: ↑ / ↓  |  Select: Enter  |  Exit: Esc", "Akshar Miyani");
 
         int key = read_key();
         if (key == KEY_UP) {
@@ -114,7 +113,7 @@ int ui_menu(const char *title, const char **options, int count, int default_idx)
         } else if (key == KEY_ENTER) {
             return current;
         } else if (key == KEY_ESC) {
-            return -1; /* Cancel / Return */
+            return -1;
         } else if (key >= '1' && key <= '9') {
             int num = key - '1';
             if (num < count) {

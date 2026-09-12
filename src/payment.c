@@ -1,7 +1,7 @@
 /**
  * @file payment.c
  * @brief Implementation of payment transaction processing and receipts.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "payment.h"
@@ -60,7 +60,7 @@ void payment_render_receipt(const PaymentRecord *p, const Consumer *c, double re
     printf(DBOX_TR "\n");
 
     printf("  " DBOX_V "  " CLR_GREEN CLR_BOLD "VOLTBILL OFFICIAL PAYMENT RECEIPT" CLR_RESET "                                " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "Payment Settlement Verification Ledger • Manipal University Jaipur (MUJ)" CLR_RESET "" DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_GRAY "Payment Settlement Verification Ledger • VoltBill Utility Engine" CLR_RESET "     " DBOX_V "\n");
 
     printf("  " DBOX_T_RIGHT);
     for (int i = 0; i < 70; i++) printf(DBOX_H);
@@ -96,7 +96,61 @@ void payment_render_receipt(const PaymentRecord *p, const Consumer *c, double re
     for (int i = 0; i < 70; i++) printf(DBOX_H);
     printf(DBOX_BR "\n");
 
-    printf("  " CLR_GRAY "Engineered by Akshar Miyani (MCA 1st Sem, MUJ)" CLR_RESET "\n\n");
+    printf("  " CLR_GRAY "Engineered by Akshar Miyani" CLR_RESET "\n\n");
+}
+
+int payment_quick_pay(const char *bill_or_consumer, double amount, int mode) {
+    BillBreakdown *bill = billing_find_by_id(bill_or_consumer);
+    Consumer *c = NULL;
+
+    if (bill) {
+        c = customer_find_by_id(bill->consumer_id);
+    } else {
+        c = customer_find_by_id(bill_or_consumer);
+        if (c) bill = billing_get_latest_for_consumer(c->id);
+    }
+
+    if (!c) {
+        printf("VoltBill: Target '%s' not found.\n", bill_or_consumer);
+        return 0;
+    }
+
+    PaymentRecord p;
+    memset(&p, 0, sizeof(p));
+    snprintf(p.receipt_id, sizeof(p.receipt_id), "REC-%04d", g_payment_count + 1001);
+    strncpy(p.bill_id, bill ? bill->bill_id : "DIRECT", BILL_ID_LEN - 1);
+    strncpy(p.consumer_id, c->id, ID_LEN - 1);
+    get_current_timestamp(p.payment_date, sizeof(p.payment_date));
+    p.amount = amount;
+    p.mode = (PaymentMode)mode;
+    snprintf(p.transaction_ref, sizeof(p.transaction_ref), "CLI-PAY-%06d", rand() % 1000000);
+
+    if (bill) {
+        bill->amount_paid += amount;
+        if (bill->amount_paid >= bill->net_payable_amount) bill->status = BILL_PAID;
+        else bill->status = BILL_PARTIALLY_PAID;
+    }
+
+    if (amount >= c->outstanding_arrears) {
+        c->advance_credit += (amount - c->outstanding_arrears);
+        c->outstanding_arrears = 0.0;
+        c->is_flagged_for_disconnection = 0;
+    } else {
+        c->outstanding_arrears -= amount;
+    }
+
+    payment_add_record(&p);
+
+    extern int storage_save_all(void);
+    storage_save_all();
+
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "CLI Payment %s for %s (Amount: Rs. %.2f)", p.receipt_id, c->id, amount);
+    audit_log("CLI_PAYMENT", audit_desc);
+
+    printf("VoltBill: Payment recorded! Receipt: %s | Amount: Rs. %.2f | Balance: Rs. %.2f\n",
+           p.receipt_id, amount, c->outstanding_arrears);
+    return 1;
 }
 
 void payment_process_flow(void) {
@@ -135,7 +189,7 @@ void payment_process_flow(void) {
     }
 
     if (amount_due <= 0.0) {
-        ui_message_box("No Dues Pending", "This consumer has zero outstanding dues. Advance credit: Rs. " , 1);
+        ui_message_box("No Dues Pending", "This consumer has zero outstanding dues.", 1);
         return;
     }
 
@@ -169,7 +223,6 @@ void payment_process_flow(void) {
         snprintf(tx_ref, sizeof(tx_ref), "CASH-COUNTER-%04d", g_payment_count + 1);
     }
 
-    /* Record payment */
     PaymentRecord p;
     memset(&p, 0, sizeof(p));
     snprintf(p.receipt_id, sizeof(p.receipt_id), "REC-%04d", g_payment_count + 1001);
@@ -180,7 +233,6 @@ void payment_process_flow(void) {
     p.mode = (PaymentMode)mode_choice;
     strncpy(p.transaction_ref, tx_ref, sizeof(p.transaction_ref) - 1);
 
-    /* Ledger settlement */
     if (bill) {
         bill->amount_paid += pay_amount;
         if (bill->amount_paid >= bill->net_payable_amount) {
@@ -194,17 +246,21 @@ void payment_process_flow(void) {
         double excess = pay_amount - consumer->outstanding_arrears;
         consumer->outstanding_arrears = 0.0;
         consumer->advance_credit += excess;
+        consumer->is_flagged_for_disconnection = 0;
     } else {
         consumer->outstanding_arrears -= pay_amount;
     }
 
     payment_add_record(&p);
 
-    /* Save to disk */
     extern int storage_save_all(void);
     storage_save_all();
 
-    /* Render Receipt */
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "Processed %s for %s (Amount: Rs. %.2f, Mode: %d)",
+             p.receipt_id, consumer->id, pay_amount, mode_choice);
+    audit_log("PAYMENT_COLLECTED", audit_desc);
+
     clear_screen();
     payment_render_receipt(&p, consumer, consumer->outstanding_arrears);
     pause_prompt();

@@ -1,7 +1,7 @@
 /**
  * @file billing.c
  * @brief Implementation of meter reading, slab engine, and invoice rendering.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "billing.h"
@@ -64,12 +64,11 @@ void billing_clear_all(void) {
 }
 
 void billing_calculate(const Consumer *c, double prev_reading, double curr_reading,
-                       double solar_units, double power_factor, BillBreakdown *b) {
+                       double solar_units, double peak_units, double power_factor, BillBreakdown *b) {
     if (!c || !b) return;
 
     memset(b, 0, sizeof(BillBreakdown));
 
-    /* Generate ID: BILL-YYYYMM-XXXX */
     char date_str[DATE_LEN], cycle_str[16];
     get_current_date(date_str, sizeof(date_str));
     get_current_billing_cycle(cycle_str, sizeof(cycle_str));
@@ -83,19 +82,17 @@ void billing_calculate(const Consumer *c, double prev_reading, double curr_readi
     b->prev_reading = prev_reading;
     b->curr_reading = curr_reading;
 
-    /* Gross units calculation with rollover check */
     double gross = curr_reading - prev_reading;
     if (gross < 0.0) {
-        /* Meter rollover (e.g. max 99999 to 00050) */
         gross = (100000.0 - prev_reading) + curr_reading;
     }
     b->gross_units = gross;
     b->solar_units = solar_units;
 
-    /* Net billed units (solar net-metering offset) */
     double net = gross - solar_units;
     if (net < 0.0) net = 0.0;
     b->billed_units = net;
+    b->peak_units = peak_units;
     b->power_factor = (power_factor <= 0.0) ? 1.0 : power_factor;
 
     TariffConfig *t = tariff_get(c->category);
@@ -111,7 +108,6 @@ void billing_calculate(const Consumer *c, double prev_reading, double curr_readi
         if (s == 0) slab_capacity = t->slabs[s].max_units;
 
         if (t->slabs[s].max_units >= 999990.0) {
-            /* Open ended top tier */
             b->slab_units[s] = units_remaining;
         } else {
             if (units_remaining > slab_capacity) {
@@ -136,6 +132,13 @@ void billing_calculate(const Consumer *c, double prev_reading, double curr_readi
         }
     }
 
+    /* Time-of-Day (ToD) Surcharge calculation */
+    b->tod_adjustment = 0.0;
+    if (t->tod_peak_surcharge_pct > 0.0 && peak_units > 0.0) {
+        double avg_rate = (b->billed_units > 0.0) ? (b->total_energy_charges / b->billed_units) : t->slabs[0].rate_per_unit;
+        b->tod_adjustment = (peak_units * avg_rate) * (t->tod_peak_surcharge_pct / 100.0);
+    }
+
     /* Fixed & Ancillary Charges */
     b->fixed_charges = c->sanctioned_load_kw * t->fixed_charge_per_kw;
     b->meter_rent = t->meter_rent;
@@ -148,16 +151,14 @@ void billing_calculate(const Consumer *c, double prev_reading, double curr_readi
     b->pf_penalty_or_rebate = 0.0;
     if (c->category == CAT_INDUSTRIAL) {
         if (b->power_factor < 0.90) {
-            /* Penalty: 2% surcharge for every 0.01 shortfall below 0.90 */
             double deficit = (0.90 - b->power_factor) * 100.0;
             b->pf_penalty_or_rebate = b->total_energy_charges * (deficit * 0.02);
         } else if (b->power_factor > 0.95) {
-            /* Incentive: 0.5% rebate for high power factor */
             b->pf_penalty_or_rebate = - (b->total_energy_charges * 0.01);
         }
     }
 
-    b->current_cycle_total = b->total_energy_charges + b->fixed_charges + b->meter_rent +
+    b->current_cycle_total = b->total_energy_charges + b->tod_adjustment + b->fixed_charges + b->meter_rent +
                              b->regulatory_surcharge + b->electricity_duty + b->green_cess +
                              b->fppca_charges + b->pf_penalty_or_rebate;
 
@@ -195,8 +196,8 @@ void billing_render_invoice(const BillBreakdown *b, const Consumer *c) {
     printf(DBOX_TR "\n");
 
     printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "VOLTBILL STATE UTILITY DISTRIBUTION COMPANY" CLR_RESET "                  " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "Academic Systems Engineering Project • Manipal University Jaipur (MUJ)" CLR_RESET "  " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_VIOLET "Chief Developer: Akshar Miyani (MCA 1st Semester)" CLR_RESET "                     " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_GRAY "High-Performance Utility Systems Architecture Engine" CLR_RESET "                " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_VIOLET "Lead Architect: Akshar Miyani" CLR_RESET "                                       " DBOX_V "\n");
 
     printf("  " DBOX_T_RIGHT);
     for (int i = 0; i < 74; i++) printf(DBOX_H);
@@ -253,6 +254,10 @@ void billing_render_invoice(const BillBreakdown *b, const Consumer *c) {
     }
     printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Subtotal Energy Charges:" CLR_RESET "                            " 
            CLR_YELLOW CLR_BOLD "₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->total_energy_charges);
+
+    if (b->tod_adjustment > 0.0) {
+        printf("  " DBOX_V "  " CLR_YELLOW "Time-of-Day (ToD) Peak Hours Surcharge:        ₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->tod_adjustment);
+    }
 
     printf("  " DBOX_T_RIGHT);
     for (int i = 0; i < 74; i++) printf(DBOX_H);
@@ -312,7 +317,7 @@ void billing_render_invoice(const BillBreakdown *b, const Consumer *c) {
     for (int i = 0; i < 74; i++) printf(DBOX_H);
     printf(DBOX_BR "\n");
 
-    printf("  " CLR_GRAY "Generated by VoltBill Engine • Architect: Akshar Miyani (MCA 1st Sem, MUJ)" CLR_RESET "\n\n");
+    printf("  " CLR_GRAY "Generated by VoltBill Engine • Architect: Akshar Miyani" CLR_RESET "\n\n");
 }
 
 int billing_export_text_invoice(const BillBreakdown *b, const Consumer *c) {
@@ -329,8 +334,8 @@ int billing_export_text_invoice(const BillBreakdown *b, const Consumer *c) {
 
     fprintf(fp, "==========================================================================\n");
     fprintf(fp, "               VOLTBILL STATE UTILITY DISTRIBUTION COMPANY                \n");
-    fprintf(fp, "      Academic Systems Engineering Project • Manipal University Jaipur    \n");
-    fprintf(fp, "           Chief Developer: Akshar Miyani (MCA 1st Semester)              \n");
+    fprintf(fp, "               High-Performance Systems Engineering Engine               \n");
+    fprintf(fp, "                       Lead Architect: Akshar Miyani                      \n");
     fprintf(fp, "==========================================================================\n");
     fprintf(fp, "TAX INVOICE / ELECTRICITY BILL                     Bill No: %s\n", b->bill_id);
     fprintf(fp, "Billing Cycle: %-10s  Bill Date: %-10s  Due Date: %-10s\n", b->billing_cycle, b->bill_date, b->due_date);
@@ -359,6 +364,9 @@ int billing_export_text_invoice(const BillBreakdown *b, const Consumer *c) {
         }
     }
     fprintf(fp, "  Total Energy Charges             : Rs. %10.2f\n", b->total_energy_charges);
+    if (b->tod_adjustment > 0.0) {
+        fprintf(fp, "  Time-of-Day (ToD) Peak Surcharge : Rs. %10.2f\n", b->tod_adjustment);
+    }
     fprintf(fp, "--------------------------------------------------------------------------\n");
     fprintf(fp, "FIXED CHARGES & LEVIES:\n");
     fprintf(fp, "  Fixed Contract Demand Charge     : Rs. %10.2f\n", b->fixed_charges);
@@ -381,9 +389,40 @@ int billing_export_text_invoice(const BillBreakdown *b, const Consumer *c) {
             (b->net_payable_amount - b->prompt_payment_rebate > 0.0) ? (b->net_payable_amount - b->prompt_payment_rebate) : 0.0);
     fprintf(fp, "  Late Payment (After Due Date)    : Pay Rs. %.2f\n", b->net_payable_amount + b->late_payment_surcharge);
     fprintf(fp, "==========================================================================\n");
-    fprintf(fp, "VoltBill Engine | Engineered by Akshar Miyani (MCA 1st Sem, MUJ)\n");
+    fprintf(fp, "VoltBill Engine | Engineered by Akshar Miyani\n");
 
     fclose(fp);
+    return 1;
+}
+
+int billing_quick_bill(const char *consumer_id, double curr_reading) {
+    Consumer *c = customer_find_by_id(consumer_id);
+    if (!c) {
+        printf("VoltBill: Consumer '%s' not found.\n", consumer_id);
+        return 0;
+    }
+
+    BillBreakdown *latest = billing_get_latest_for_consumer(c->id);
+    double prev_reading = latest ? latest->curr_reading : 0.0;
+    double solar = c->solar_capacity_kw * 40.0;
+    double peak = (c->category == CAT_COMMERCIAL || c->category == CAT_INDUSTRIAL) ? 50.0 : 0.0;
+    double pf = 1.0;
+
+    BillBreakdown b;
+    billing_calculate(c, prev_reading, curr_reading, solar, peak, pf, &b);
+    c->outstanding_arrears = b.net_payable_amount;
+    billing_add_record(&b);
+    billing_export_text_invoice(&b, c);
+
+    extern int storage_save_all(void);
+    storage_save_all();
+
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "CLI Generated %s for %s (Rs. %.2f)", b.bill_id, c->id, b.net_payable_amount);
+    audit_log("CLI_BILL_GENERATE", audit_desc);
+
+    printf("VoltBill: Bill %s created for %s | Net Payable: Rs. %.2f | Due: %s\n",
+           b.bill_id, c->id, b.net_payable_amount, b.due_date);
     return 1;
 }
 
@@ -414,7 +453,6 @@ void billing_generate_flow(void) {
 
     customer_render_card(c);
 
-    /* Determine previous meter reading from last bill or default 0 */
     BillBreakdown *latest = billing_get_latest_for_consumer(c->id);
     double prev_reading = latest ? latest->curr_reading : 0.0;
 
@@ -425,7 +463,6 @@ void billing_generate_flow(void) {
         prev_reading = get_safe_double("  Enter Custom Previous Reading: ", 0.0, 9999999.0);
     }
 
-    /* Current reading with validation */
     double curr_reading = 0.0;
     while (1) {
         curr_reading = get_safe_double("  Enter Current Meter Reading (kWh): ", 0.0, 9999999.0);
@@ -441,24 +478,26 @@ void billing_generate_flow(void) {
         break;
     }
 
-    /* Solar rooftop export */
     double solar_units = 0.0;
     if (c->solar_capacity_kw > 0.0) {
         printf("  " CLR_GREEN "Consumer has %.1f kW Rooftop Solar Net Metering." CLR_RESET "\n", c->solar_capacity_kw);
         solar_units = get_safe_double("  Enter Solar Units Exported to Grid (kWh): ", 0.0, 50000.0);
     }
 
-    /* Power factor for industrial */
+    double peak_units = 0.0;
+    TariffConfig *t = tariff_get(c->category);
+    if (t->tod_peak_surcharge_pct > 0.0) {
+        peak_units = get_safe_double("  Enter Peak-Hour Units (18:00 - 22:00) Consumed: ", 0.0, 100000.0);
+    }
+
     double power_factor = 1.0;
     if (c->category == CAT_INDUSTRIAL) {
         power_factor = get_safe_double("  Enter Recorded Power Factor [0.50 - 1.00]: ", 0.50, 1.00);
     }
 
-    /* Compute bill */
     BillBreakdown new_bill;
-    billing_calculate(c, prev_reading, curr_reading, solar_units, power_factor, &new_bill);
+    billing_calculate(c, prev_reading, curr_reading, solar_units, peak_units, power_factor, &new_bill);
 
-    /* Update consumer outstanding balance */
     c->outstanding_arrears = new_bill.net_payable_amount;
     if (new_bill.advance_adjusted > 0.0) {
         c->advance_credit -= new_bill.advance_adjusted;
@@ -468,16 +507,174 @@ void billing_generate_flow(void) {
     billing_add_record(&new_bill);
     billing_export_text_invoice(&new_bill, c);
 
-    /* Save system state */
     extern int storage_save_all(void);
     storage_save_all();
 
-    /* Render the glorious invoice */
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "Generated %s for %s (Billed: %.1f kWh, Rs. %.2f)",
+             new_bill.bill_id, c->id, new_bill.billed_units, new_bill.net_payable_amount);
+    audit_log("BILL_GENERATE", audit_desc);
+
     clear_screen();
     billing_render_invoice(&new_bill, c);
 
     printf("  " CLR_GREEN "✓ Bill %s generated and exported to data/bills/%s.txt" CLR_RESET "\n", 
            new_bill.bill_id, new_bill.bill_id);
+    pause_prompt();
+}
+
+void billing_batch_generate_flow(void) {
+    ui_header("BATCH GRID BILLING ENGINE", "Run Simultaneous Monthly Assessment for All Active Consumers");
+
+    int consumer_count = customer_get_count();
+    if (consumer_count == 0) {
+        ui_message_box("Empty Grid", "No consumers registered in database to bill.", 0);
+        return;
+    }
+
+    printf("  " CLR_WHITE "Active Consumers to Process : " CLR_CYAN CLR_BOLD "%d" CLR_RESET "\n", consumer_count);
+    printf("  " CLR_WHITE "Current Billing Cycle       : " CLR_YELLOW);
+    char cycle[16];
+    get_current_billing_cycle(cycle, sizeof(cycle));
+    printf("%s" CLR_RESET "\n\n", cycle);
+
+    int confirm = get_safe_int("  Execute automated grid billing cycle? [1 = Proceed, 0 = Cancel]: ", 0, 1);
+    if (!confirm) return;
+
+    printf("\n  " CLR_CYAN "⚡ Processing Batch Invoices:" CLR_RESET "\n");
+
+    int generated = 0;
+    double total_units_batched = 0.0;
+    double total_revenue_batched = 0.0;
+
+    for (int i = 0; i < consumer_count; i++) {
+        Consumer *c = customer_get_by_index(i);
+        if (!c || !c->is_active) continue;
+
+        BillBreakdown *latest = billing_get_latest_for_consumer(c->id);
+        double prev = latest ? latest->curr_reading : 0.0;
+        
+        /* Realistic consumption simulation based on sanctioned load */
+        double delta = c->sanctioned_load_kw * (80.0 + (rand() % 40));
+        double curr = prev + delta;
+        double solar = (c->solar_capacity_kw > 0.0) ? (c->solar_capacity_kw * (30.0 + (rand() % 15))) : 0.0;
+        double peak = delta * 0.25;
+        double pf = (c->category == CAT_INDUSTRIAL) ? 0.91 : 1.0;
+
+        BillBreakdown b;
+        billing_calculate(c, prev, curr, solar, peak, pf, &b);
+        c->outstanding_arrears = b.net_payable_amount;
+        billing_add_record(&b);
+        billing_export_text_invoice(&b, c);
+
+        total_units_batched += b.billed_units;
+        total_revenue_batched += b.net_payable_amount;
+        generated++;
+
+        printf("  ");
+        ui_progress_bar(((double)(i + 1) / consumer_count) * 100.0, 30);
+        printf("  Processed: %s (%s)\r", c->id, c->name);
+        fflush(stdout);
+        sleep_ms(30);
+    }
+
+    extern int storage_save_all(void);
+    storage_save_all();
+
+    char audit_desc[128];
+    snprintf(audit_desc, sizeof(audit_desc), "Batch Billed %d consumers (Total: Rs. %.2f)", generated, total_revenue_batched);
+    audit_log("BATCH_BILLING_RUN", audit_desc);
+
+    printf("\n\n");
+    printf("  " DBOX_TL);
+    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    printf(DBOX_TR "\n");
+
+    printf("  " DBOX_V "  " CLR_GREEN CLR_BOLD "✓ BATCH BILLING RUN COMPLETED SUCCESSFULLY" CLR_RESET "                             " DBOX_V "\n");
+    printf("  " DBOX_T_RIGHT);
+    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    printf(DBOX_T_LEFT "\n");
+
+    printf("  " DBOX_V "  " CLR_WHITE "Total Invoices Generated :" CLR_RESET " " CLR_CYAN "%-44d" CLR_RESET " " DBOX_V "\n", generated);
+    printf("  " DBOX_V "  " CLR_WHITE "Total Energy Billed      :" CLR_RESET " " CLR_YELLOW "%-10.1f kWh" CLR_RESET "                                   " DBOX_V "\n", total_units_batched);
+    printf("  " DBOX_V "  " CLR_WHITE "Total Revenue Assessed   :" CLR_RESET " " CLR_GREEN "₹ %-12.2f" CLR_RESET "                                  " DBOX_V "\n", total_revenue_batched);
+
+    printf("  " DBOX_BL);
+    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    printf(DBOX_BR "\n");
+
+    pause_prompt();
+}
+
+void billing_filter_flow(void) {
+    ui_header("INVOICE FILTER & AUDIT QUERY ENGINE", "Filter Invoices by Payment Status, Consumer, or Value");
+
+    if (g_bill_count == 0) {
+        ui_message_box("No Invoices", "No bills have been generated yet.", 0);
+        return;
+    }
+
+    const char *filter_opts[] = {
+        "Show Pending Unpaid Bills Only",
+        "Show Fully Paid Bills Only",
+        "Show Partially Paid Bills Only",
+        "Show Bills for a Specific Consumer",
+        "Show High-Value Bills (> ₹10,000)"
+    };
+
+    int sel = ui_menu("FILTER CRITERIA", filter_opts, 5, 0);
+    if (sel < 0) return;
+
+    char target_consumer[ID_LEN] = {0};
+    if (sel == 3) {
+        printf("  Enter Consumer ID (e.g. VB-1001): ");
+        get_safe_string(target_consumer, sizeof(target_consumer));
+    }
+
+    ui_header("FILTERED INVOICE RESULTS", "Matching Billing Ledgers");
+
+    printf("  " CLR_GRAY "┌──────────────┬────────────┬──────────┬──────────┬──────────────┬──────────────┬───────────┐" CLR_RESET "\n");
+    printf("  " CLR_GRAY "│ " CLR_CYAN CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-10s" CLR_RESET CLR_GRAY "│ " 
+           CLR_YELLOW CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
+           CLR_GREEN CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
+           CLR_VIOLET CLR_BOLD "%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+           "Bill ID", "Consumer", "Cycle", "Units", "Assessed (₹)", "Payable (₹)", "Status");
+    printf("  " CLR_GRAY "├──────────────┼────────────┼──────────┼──────────┼──────────────┼──────────────┼───────────┤" CLR_RESET "\n");
+
+    int match_count = 0;
+    for (int i = 0; i < g_bill_count; i++) {
+        BillBreakdown *b = &g_bills[i];
+        int match = 0;
+
+        if (sel == 0 && b->status == BILL_PENDING) match = 1;
+        else if (sel == 1 && b->status == BILL_PAID) match = 1;
+        else if (sel == 2 && b->status == BILL_PARTIALLY_PAID) match = 1;
+        else if (sel == 3 && strcmp(b->consumer_id, target_consumer) == 0) match = 1;
+        else if (sel == 4 && b->net_payable_amount >= 10000.0) match = 1;
+
+        if (match) {
+            match_count++;
+            const char *st_clr = (b->status == BILL_PAID) ? CLR_GREEN : CLR_YELLOW;
+            const char *st_str = (b->status == BILL_PAID) ? "Paid" : (b->status == BILL_PARTIALLY_PAID ? "Partial" : "Pending");
+
+            printf("  " CLR_GRAY "│ " CLR_CYAN "%-12s" CLR_RESET CLR_GRAY "│ " 
+                   CLR_WHITE "%-10s" CLR_RESET CLR_GRAY "│ " 
+                   CLR_GRAY "%-8s" CLR_RESET CLR_GRAY "│ " 
+                   CLR_WHITE "%8.1f" CLR_RESET CLR_GRAY "│ " 
+                   CLR_WHITE "%12.2f" CLR_RESET CLR_GRAY "│ " 
+                   CLR_YELLOW CLR_BOLD "%12.2f" CLR_RESET CLR_GRAY "│ " 
+                   "%s%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+                   b->bill_id, b->consumer_id, b->billing_cycle, b->billed_units,
+                   b->current_cycle_total, b->net_payable_amount, st_clr, st_str);
+        }
+    }
+
+    printf("  " CLR_GRAY "└──────────────┴────────────┴──────────┴──────────┴──────────────┴──────────────┴───────────┘" CLR_RESET "\n");
+    printf("  " CLR_GRAY "Matching Records Found: " CLR_CYAN "%d" CLR_RESET "\n", match_count);
+
     pause_prompt();
 }
 
@@ -511,7 +708,7 @@ void billing_list_all(void) {
         } else if (b->status == BILL_PARTIALLY_PAID) {
             status_str = "Partial";
             status_clr = CLR_CYAN;
-        } else if (b->status == BILL_OVERDUE) {
+        } else if (b->status == BILL_OVERDUE || is_date_overdue(b->due_date)) {
             status_str = "Overdue";
             status_clr = CLR_RED;
         }
@@ -530,7 +727,6 @@ void billing_list_all(void) {
     printf("  " CLR_GRAY "└──────────────┴────────────┴──────────┴──────────┴──────────────┴──────────────┴───────────┘" CLR_RESET "\n");
     printf("  " CLR_GRAY "Total Invoices: " CLR_CYAN CLR_BOLD "%d" CLR_RESET "\n", g_bill_count);
 
-    /* View detailed bill option */
     printf("\n  " CLR_WHITE "Enter Bill ID to view full invoice (or press Enter to return): " CLR_RESET);
     char inspect_id[32];
     get_safe_string(inspect_id, sizeof(inspect_id));

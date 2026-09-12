@@ -1,7 +1,7 @@
 /**
  * @file billing.h
  * @brief Meter reading ingestion, progressive slab calculation, and invoice generator.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef BILLING_H
@@ -40,10 +40,25 @@ BillBreakdown *billing_get_latest_for_consumer(const char *consumer_id);
 void billing_generate_flow(void);
 
 /**
+ * @brief Batch generates bills for all active registered consumers across the grid.
+ */
+void billing_batch_generate_flow(void);
+
+/**
+ * @brief Interactive search and filter engine for past bills.
+ */
+void billing_filter_flow(void);
+
+/**
+ * @brief Direct CLI one-liner bill generator.
+ */
+int billing_quick_bill(const char *consumer_id, double curr_reading);
+
+/**
  * @brief Computes comprehensive bill breakdown for given units and consumer parameters.
  */
 void billing_calculate(const Consumer *c, double prev_reading, double curr_reading,
-                       double solar_units, double power_factor, BillBreakdown *out_bill);
+                       double solar_units, double peak_units, double power_factor, BillBreakdown *out_bill);
 
 /**
  * @brief Displays a lavish terminal invoice for a bill.

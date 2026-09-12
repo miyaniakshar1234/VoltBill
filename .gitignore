@@ -12,6 +12,9 @@ build/
 # Data files and generated reports
 data/*.dat
 data/bills/*.txt
+data/notices/*.txt
+data/backups/
+data/audit_trail.log
 data/export_*.csv
 
 # CMake artifacts

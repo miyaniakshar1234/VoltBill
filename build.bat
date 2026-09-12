@@ -3,9 +3,11 @@ setlocal enabledelayedexpansion
 
 echo =========================================================================
 echo   VoltBill Native C Build System
-echo   Lead Architect: Akshar Miyani (MCA 1st Sem, MUJ)
+echo   Lead Architect: Akshar Miyani
 echo =========================================================================
 echo.
+
+taskkill /F /IM voltbill.exe >nul 2>nul
 
 if not exist bin mkdir bin
 if not exist data mkdir data

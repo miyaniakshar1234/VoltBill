@@ -1,8 +1,8 @@
 /**
  * @file main.c
  * @brief Application entry point, interactive dispatcher, and CLI engine for VoltBill.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
- * @version 1.0.0
+ * @author Akshar Miyani
+ * @version 1.1.0
  */
 
 #include "models.h"
@@ -28,18 +28,20 @@ static void menu_customer_management(void) {
         "View All Registered Consumers",
         "Search Consumer Profile (ID / Name / Meter)",
         "Edit Consumer Details / Connection",
+        "Defaulters Ledger & Disconnection Notices",
         "Return to Main Dashboard"
     };
 
     while (1) {
-        int choice = ui_menu("CUSTOMER MANAGEMENT MODULE", opts, 5, 0);
-        if (choice < 0 || choice == 4) break;
+        int choice = ui_menu("CUSTOMER MANAGEMENT MODULE", opts, 6, 0);
+        if (choice < 0 || choice == 5) break;
 
         switch (choice) {
             case 0: customer_register_flow(); break;
             case 1: customer_list_all(); break;
             case 2: customer_search_flow(); break;
             case 3: customer_edit_flow(); break;
+            case 4: customer_defaulters_flow(); break;
             default: break;
         }
     }
@@ -48,19 +50,23 @@ static void menu_customer_management(void) {
 static void menu_billing_management(void) {
     const char *opts[] = {
         "Record Meter Reading & Generate Bill",
+        "Batch Grid Billing Run (All Active Consumers)",
         "View All Issued Bills & Payment Status",
+        "Filter & Query Invoices (Paid / Unpaid / Consumer)",
         "Inspect Specific Invoice by Bill ID",
         "Return to Main Dashboard"
     };
 
     while (1) {
-        int choice = ui_menu("METER READING & BILLING ENGINE", opts, 4, 0);
-        if (choice < 0 || choice == 3) break;
+        int choice = ui_menu("METER READING & BILLING ENGINE", opts, 6, 0);
+        if (choice < 0 || choice == 5) break;
 
         switch (choice) {
             case 0: billing_generate_flow(); break;
-            case 1: billing_list_all(); break;
-            case 2: {
+            case 1: billing_batch_generate_flow(); break;
+            case 2: billing_list_all(); break;
+            case 3: billing_filter_flow(); break;
+            case 4: {
                 printf("  " CLR_WHITE "Enter Bill ID: " CLR_RESET);
                 char bid[32];
                 get_safe_string(bid, sizeof(bid));
@@ -136,6 +142,7 @@ static void menu_tariffs(void) {
             case 2:
                 tariff_reset_defaults();
                 tariff_save_to_file();
+                audit_log("TARIFF_RESET", "Restored default rates");
                 ui_message_box("Tariffs Reset", "Restored default rates successfully!", 1);
                 break;
             default: break;
@@ -145,45 +152,63 @@ static void menu_tariffs(void) {
 
 static void menu_storage_tools(void) {
     const char *opts[] = {
-        "Seed Professor Evaluation Demo Records (6 Profiles)",
+        "Seed Evaluation Demo Records (6 Diverse Profiles)",
+        "Create Full Database Backup Snapshot (JSON)",
         "Export All Data to CSV Spreadsheets (Excel)",
         "Database Diagnostics & File Status",
         "Return to Main Dashboard"
     };
 
     while (1) {
-        int choice = ui_menu("SYSTEM TOOLS & DATA MANAGEMENT", opts, 4, 0);
-        if (choice < 0 || choice == 3) break;
+        int choice = ui_menu("SYSTEM TOOLS & DATA MANAGEMENT", opts, 5, 0);
+        if (choice < 0 || choice == 4) break;
 
         switch (choice) {
             case 0: storage_seed_demo_data(); break;
-            case 1:
+            case 1: {
+                char backup_path[128];
+                if (storage_create_backup(backup_path, sizeof(backup_path))) {
+                    char msg[256];
+                    snprintf(msg, sizeof(msg), "Backup created at %s", backup_path);
+                    ui_message_box("Backup Complete", msg, 1);
+                } else {
+                    ui_message_box("Backup Failed", "Unable to create backup snapshot.", 0);
+                }
+                break;
+            }
+            case 2:
                 storage_export_csv();
+                audit_log("CSV_EXPORT", "Exported consumers and bills to CSV");
                 ui_message_box("CSV Exported", "Generated data/export_consumers.csv and data/export_bills.csv", 1);
                 break;
-            case 2: storage_display_stats(); break;
+            case 3: storage_display_stats(); break;
             default: break;
         }
     }
 }
 
 static void print_version(void) {
-    printf("VoltBill v1.0.0\n");
+    printf("VoltBill v1.1.0\n");
     printf("Lead Architect & Developer : Akshar Miyani\n");
-    printf("Program & Academic Year    : MCA (1st Semester)\n");
-    printf("Institution                : Manipal University Jaipur (MUJ)\n");
-    printf("Subject                    : C Programming & Systems Fundamentals\n");
+    printf("Platform                   : Native Systems Core (ISO C11)\n");
     printf("Repository                 : https://github.com/miyaniakshar1234/VoltBill\n");
 }
 
 static void print_help(void) {
     printf("VoltBill - Electricity Bill Management System in C\n");
-    printf("Usage: voltbill [OPTIONS]\n\n");
+    printf("Lead Architect: Akshar Miyani\n\n");
+    printf("Usage: voltbill [OPTIONS] [COMMAND] [ARGS...]\n\n");
     printf("Options:\n");
-    printf("  --demo, --seed       Seed realistic evaluation demo records & launch\n");
-    printf("  --export             Export all consumers and bills to CSV and exit\n");
-    printf("  --version, -v        Display developer info and version\n");
-    printf("  --help, -h           Show this help message\n");
+    printf("  --demo, --seed                   Seed realistic demo records & launch dashboard\n");
+    printf("  --export                         Export all consumers and bills to CSV and exit\n");
+    printf("  --backup                         Create a full timestamped JSON backup snapshot\n");
+    printf("  --batch                          Execute batch billing run for all active consumers\n");
+    printf("  --version, -v                    Display developer info and version\n");
+    printf("  --help, -h                       Show this help message\n\n");
+    printf("CLI Scripting Commands:\n");
+    printf("  voltbill bill <id> <reading>     Generate invoice directly from terminal\n");
+    printf("  voltbill pay <id> <amount> [m]   Process payment (mode 0=Cash, 1=UPI, 2=Card, 3=NetBank)\n");
+    printf("  voltbill status <id>             Show instant balance and meter status\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -191,7 +216,7 @@ int main(int argc, char *argv[]) {
     tariff_init();
     storage_init();
 
-    /* Check CLI arguments */
+    /* Check CLI arguments and subcommands */
     if (argc > 1) {
         if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) {
             print_version();
@@ -209,11 +234,47 @@ int main(int argc, char *argv[]) {
             restore_console();
             return 0;
         }
+        if (strcmp(argv[1], "--backup") == 0) {
+            char bpath[128];
+            if (storage_create_backup(bpath, sizeof(bpath))) {
+                printf("VoltBill: Database backup saved to %s\n", bpath);
+            }
+            restore_console();
+            return 0;
+        }
+        if (strcmp(argv[1], "--batch") == 0) {
+            billing_batch_generate_flow();
+            restore_console();
+            return 0;
+        }
         if (strcmp(argv[1], "--demo") == 0 || strcmp(argv[1], "--seed") == 0) {
             storage_seed_demo_data();
         }
+        /* Scripting Subcommand: voltbill bill <consumer-id> <curr-reading> */
+        if (strcmp(argv[1], "bill") == 0 && argc >= 4) {
+            const char *cid = argv[2];
+            double reading = atof(argv[3]);
+            billing_quick_bill(cid, reading);
+            restore_console();
+            return 0;
+        }
+        /* Scripting Subcommand: voltbill pay <target> <amount> [mode] */
+        if (strcmp(argv[1], "pay") == 0 && argc >= 4) {
+            const char *target = argv[2];
+            double amount = atof(argv[3]);
+            int mode = (argc >= 5) ? atoi(argv[4]) : 1;
+            payment_quick_pay(target, amount, mode);
+            restore_console();
+            return 0;
+        }
+        /* Scripting Subcommand: voltbill status <consumer-id> */
+        if (strcmp(argv[1], "status") == 0 && argc >= 3) {
+            customer_quick_status(argv[2]);
+            restore_console();
+            return 0;
+        }
     } else {
-        /* If freshly launched with no consumers, show splash banner! */
+        /* If freshly launched with no consumers, show splash banner */
         display_onboarding_splash();
     }
 
@@ -224,7 +285,7 @@ int main(int argc, char *argv[]) {
         "Grid Analytics & Carbon Footprint",
         "Dynamic Tariff & Slab Rules",
         "System Tools, Seeder & CSV Export",
-        "About Developer & MUJ Credentials",
+        "About Developer & Architecture",
         "Save & Exit VoltBill Engine"
     };
 
@@ -246,14 +307,13 @@ int main(int argc, char *argv[]) {
         } else if (sel == 6) {
             display_about_screen();
         } else if (sel == 7 || sel < 0) {
-            /* Exit */
             storage_save_all();
             storage_export_csv();
             clear_screen();
             printf("\n");
             printf("  " CLR_CYAN CLR_BOLD "⚡ VoltBill Session Terminated." CLR_RESET "\n");
             printf("  " CLR_WHITE "All data saved to persistent datastores successfully." CLR_RESET "\n");
-            printf("  " CLR_GRAY "Thank you for evaluating VoltBill • Akshar Miyani (MCA 1st Sem, MUJ)" CLR_RESET "\n\n");
+            printf("  " CLR_GRAY "Thank you for using VoltBill • Akshar Miyani" CLR_RESET "\n\n");
             break;
         }
     }

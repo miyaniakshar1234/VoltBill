@@ -1,8 +1,8 @@
 /**
  * @file models.h
  * @brief Core data structures and enumerations for VoltBill.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
- * @version 1.0.0
+ * @author Akshar Miyani
+ * @version 1.1.0
  */
 
 #ifndef MODELS_H
@@ -69,7 +69,7 @@ typedef enum {
  */
 typedef struct {
     double min_units;       /* Slab lower bound in kWh (inclusive) */
-    double max_units;       /* Slab upper bound in kWh (use -1 or 999999 for infinity) */
+    double max_units;       /* Slab upper bound in kWh (use 999999 for infinity) */
     double rate_per_unit;   /* Charge in ₹ per kWh */
 } TariffSlab;
 
@@ -89,6 +89,8 @@ typedef struct {
     double fppca_per_unit;             /* Fuel Surcharge Adjustment in ₹/unit */
     double prompt_rebate_pct;          /* % discount for payment before due date (e.g., 1.5%) */
     double late_penalty_pct;           /* % penalty surcharge for late payment (e.g., 2.0%) */
+    double tod_peak_surcharge_pct;     /* % surcharge for peak-hour units (e.g., 15.0%) */
+    double tod_offpeak_rebate_pct;     /* % discount for off-peak solar units (e.g., 10.0%) */
 } TariffConfig;
 
 /**
@@ -110,6 +112,7 @@ typedef struct {
     double advance_credit;            /* Advance payments held in credit in ₹ */
     char registered_date[DATE_LEN];   /* YYYY-MM-DD */
     int is_active;                    /* 1 = active, 0 = disconnected */
+    int is_flagged_for_disconnection; /* 1 = defaulter notice served */
 } Consumer;
 
 /**
@@ -124,6 +127,7 @@ typedef struct {
     double units_consumed;            /* Raw units = curr - prev */
     double solar_exported_units;      /* Solar units pumped back to grid */
     double net_units;                 /* Billed units = consumed - solar */
+    double peak_hours_units;          /* Units consumed during 18:00 - 22:00 peak */
     double power_factor;              /* Recorded power factor (0.50 - 1.00) */
     int is_meter_defective;           /* 1 if flagged defective */
 } MeterReading;
@@ -144,6 +148,7 @@ typedef struct {
     double gross_units;
     double solar_units;
     double billed_units;
+    double peak_units;
     double power_factor;
 
     /* Slabs and Energy Charge */
@@ -152,6 +157,9 @@ typedef struct {
     double slab_rates[MAX_SLABS];
     double slab_amounts[MAX_SLABS];
     double total_energy_charges;
+
+    /* Time of Day Adjustment */
+    double tod_adjustment;            /* Surcharge or rebate based on peak usage */
 
     /* Additional Levies */
     double fixed_charges;             /* Sanctioned load * rate */

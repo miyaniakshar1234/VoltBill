@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # VoltBill One-Command Unix/Linux/macOS Installer
-# Lead Architect: Akshar Miyani (MCA 1st Sem, MUJ)
+# Lead Architect: Akshar Miyani
 # Usage: curl -fsSL https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/install.sh | bash
 
 set -e
@@ -8,7 +8,7 @@ set -e
 echo ""
 echo "  ========================================================================="
 echo "    ⚡ Installing VoltBill Utility Engine (Unix / Linux / macOS)"
-echo "    Lead Architect: Akshar Miyani | MCA (1st Sem) | Manipal University Jaipur"
+echo "    Lead Architect: Akshar Miyani"
 echo "  ========================================================================="
 echo ""
 

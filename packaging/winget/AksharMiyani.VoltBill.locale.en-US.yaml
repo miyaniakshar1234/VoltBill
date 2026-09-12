@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
 PackageIdentifier: AksharMiyani.VoltBill
-PackageVersion: 1.0.0
+PackageVersion: 1.1.0
 PackageLocale: en-US
 Publisher: Akshar Miyani
 PublisherUrl: https://github.com/miyaniakshar1234
-Author: Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+Author: Akshar Miyani
 PackageName: VoltBill
 PackageUrl: https://github.com/miyaniakshar1234/VoltBill
 License: MIT
@@ -14,7 +14,7 @@ Description: |
   VoltBill is an enterprise-grade, high-performance console-based electricity billing and customer management engine written in ISO C (C99/C11).
   Features multi-tier progressive slab billing, solar net metering, industrial power factor adjustment, dynamic runtime tariff editing,
   visual ASCII consumption charts, carbon footprint estimator, and payment ledger.
-  Developed by Akshar Miyani (MCA 1st Semester, Manipal University Jaipur).
+  Developed by Akshar Miyani.
 Tags:
 - electricity
 - billing
@@ -23,7 +23,6 @@ Tags:
 - c
 - cli
 - tui
-- academic
-- muj
+- systems
 ManifestType: defaultLocale
 ManifestVersion: 1.6.0

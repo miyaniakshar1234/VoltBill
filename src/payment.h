@@ -1,7 +1,7 @@
 /**
  * @file payment.h
  * @brief Payment processing, receipt generator, and transaction ledger.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef PAYMENT_H
@@ -33,6 +33,11 @@ void payment_process_flow(void);
  * @brief Displays a list of all recorded payment receipts.
  */
 void payment_list_all(void);
+
+/**
+ * @brief Direct CLI one-liner payment processor.
+ */
+int payment_quick_pay(const char *bill_or_consumer, double amount, int mode);
 
 /**
  * @brief Renders a terminal receipt card for a transaction.

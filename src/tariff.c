@@ -1,7 +1,7 @@
 /**
  * @file tariff.c
  * @brief Dynamic tariff configuration, serialization, and runtime editor.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #include "tariff.h"
@@ -42,6 +42,8 @@ void tariff_reset_defaults(void) {
     g_tariffs[0].fppca_per_unit = 0.35;
     g_tariffs[0].prompt_rebate_pct = 1.5;
     g_tariffs[0].late_penalty_pct = 2.0;
+    g_tariffs[0].tod_peak_surcharge_pct = 0.0;
+    g_tariffs[0].tod_offpeak_rebate_pct = 0.0;
 
     /* 2. COMMERCIAL TARIFF */
     g_tariffs[1].category = CAT_COMMERCIAL;
@@ -59,6 +61,8 @@ void tariff_reset_defaults(void) {
     g_tariffs[1].fppca_per_unit = 0.45;
     g_tariffs[1].prompt_rebate_pct = 1.0;
     g_tariffs[1].late_penalty_pct = 2.5;
+    g_tariffs[1].tod_peak_surcharge_pct = 15.0;
+    g_tariffs[1].tod_offpeak_rebate_pct = 5.0;
 
     /* 3. INDUSTRIAL TARIFF */
     g_tariffs[2].category = CAT_INDUSTRIAL;
@@ -75,6 +79,8 @@ void tariff_reset_defaults(void) {
     g_tariffs[2].fppca_per_unit = 0.55;
     g_tariffs[2].prompt_rebate_pct = 2.0;
     g_tariffs[2].late_penalty_pct = 3.0;
+    g_tariffs[2].tod_peak_surcharge_pct = 20.0;
+    g_tariffs[2].tod_offpeak_rebate_pct = 10.0;
 
     /* 4. AGRICULTURAL TARIFF */
     g_tariffs[3].category = CAT_AGRICULTURAL;
@@ -89,6 +95,8 @@ void tariff_reset_defaults(void) {
     g_tariffs[3].fppca_per_unit = 0.10;
     g_tariffs[3].prompt_rebate_pct = 2.0;
     g_tariffs[3].late_penalty_pct = 1.0;
+    g_tariffs[3].tod_peak_surcharge_pct = 0.0;
+    g_tariffs[3].tod_offpeak_rebate_pct = 0.0;
 }
 
 int tariff_save_to_file(void) {
@@ -97,7 +105,7 @@ int tariff_save_to_file(void) {
     if (!fp) return 0;
 
     fprintf(fp, "# VoltBill Tariff Configuration\n");
-    fprintf(fp, "# Maintained by Akshar Miyani (MCA, MUJ)\n\n");
+    fprintf(fp, "# Maintained by Akshar Miyani\n\n");
 
     for (int i = 0; i < 4; i++) {
         TariffConfig *t = &g_tariffs[i];
@@ -115,7 +123,9 @@ int tariff_save_to_file(void) {
         fprintf(fp, "green_cess=%.2f\n", t->green_cess_per_unit);
         fprintf(fp, "fppca=%.2f\n", t->fppca_per_unit);
         fprintf(fp, "prompt_rebate=%.2f\n", t->prompt_rebate_pct);
-        fprintf(fp, "late_penalty=%.2f\n\n", t->late_penalty_pct);
+        fprintf(fp, "late_penalty=%.2f\n", t->late_penalty_pct);
+        fprintf(fp, "tod_peak_surcharge=%.2f\n", t->tod_peak_surcharge_pct);
+        fprintf(fp, "tod_offpeak_rebate=%.2f\n\n", t->tod_offpeak_rebate_pct);
     }
     fclose(fp);
     return 1;
@@ -176,6 +186,10 @@ int tariff_load_from_file(void) {
                 t->prompt_rebate_pct = atof(val);
             } else if (strcmp(key, "late_penalty") == 0) {
                 t->late_penalty_pct = atof(val);
+            } else if (strcmp(key, "tod_peak_surcharge") == 0) {
+                t->tod_peak_surcharge_pct = atof(val);
+            } else if (strcmp(key, "tod_offpeak_rebate") == 0) {
+                t->tod_offpeak_rebate_pct = atof(val);
             }
         }
     }
@@ -220,6 +234,10 @@ void tariff_display_all(void) {
                t->fixed_charge_per_kw, t->meter_rent, t->electricity_duty_pct);
         printf("  " CLR_GRAY "│ " CLR_WHITE "Regulatory Surcharge: %.1f%%  •  Fuel Adj: ₹%.2f/u  •  Rebate: %.1f%%" CLR_RESET "\n",
                t->regulatory_surcharge_pct, t->fppca_per_unit, t->prompt_rebate_pct);
+        if (t->tod_peak_surcharge_pct > 0.0) {
+            printf("  " CLR_GRAY "│ " CLR_YELLOW "Time-of-Day (ToD): Peak Surcharge: +%.1f%%  •  Off-Peak Rebate: -%.1f%%" CLR_RESET "\n",
+                   t->tod_peak_surcharge_pct, t->tod_offpeak_rebate_pct);
+        }
         printf("  " CLR_GRAY "└────────────────────────────────────────────────────────────────────┘" CLR_RESET "\n\n");
     }
 
@@ -232,7 +250,7 @@ void tariff_edit_menu(void) {
         "Commercial (Offices / Shops)",
         "Industrial (Manufacturing)",
         "Agricultural (Farming)",
-        "Reset All to Academic Factory Defaults"
+        "Reset All to Standard System Defaults"
     };
 
     int sel = ui_menu("EDIT TARIFF CONFIGURATION", cat_opts, 5, 0);
@@ -241,7 +259,8 @@ void tariff_edit_menu(void) {
     if (sel == 4) {
         tariff_reset_defaults();
         tariff_save_to_file();
-        ui_message_box("Tariffs Reset", "All tariffs restored to academic factory defaults successfully!", 1);
+        audit_log("TARIFF_RESET", "Restored all tariffs to system defaults");
+        ui_message_box("Tariffs Reset", "All tariffs restored to standard defaults successfully!", 1);
         return;
     }
 
@@ -250,7 +269,6 @@ void tariff_edit_menu(void) {
 
     printf("  " CLR_WHITE "Editing rates for: " CLR_CYAN CLR_BOLD "%s" CLR_RESET "\n\n", category_to_string(t->category));
     
-    /* Edit Slabs */
     for (int s = 0; s < t->slab_count; s++) {
         char prompt[128];
         snprintf(prompt, sizeof(prompt), "  Enter new rate for Slab %d [%.0f - %.0f] (Current: ₹%.2f): ₹ ",
@@ -258,11 +276,11 @@ void tariff_edit_menu(void) {
         t->slabs[s].rate_per_unit = get_safe_double(prompt, 0.10, 100.0);
     }
 
-    /* Edit Fixed Charges and Taxes */
     t->fixed_charge_per_kw = get_safe_double("  Fixed Charge per kW (₹/mo): ₹ ", 0.0, 1000.0);
     t->meter_rent = get_safe_double("  Meter Rent per month: ₹ ", 0.0, 500.0);
     t->electricity_duty_pct = get_safe_double("  Electricity Duty Tax (%): ", 0.0, 50.0);
 
     tariff_save_to_file();
+    audit_log("TARIFF_UPDATE", t->category_name);
     ui_message_box("Tariff Saved", "Updated rates saved to config/tariffs.cfg successfully!", 1);
 }

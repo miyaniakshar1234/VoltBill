@@ -1,7 +1,7 @@
 /**
  * @file utils.h
  * @brief Cross-platform utilities, input handling, and terminal abstractions.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef UTILS_H
@@ -82,7 +82,7 @@ void compute_due_date(const char *base_date, int days_ahead, char *buffer, size_
 void get_current_billing_cycle(char *buffer, size_t len);
 
 /**
- * @brief Formats currency amount as "₹ 1,234.50".
+ * @brief Formats currency amount as "Rs. 1,234.50".
  */
 void format_currency(double amount, char *buffer, size_t len);
 
@@ -95,5 +95,15 @@ int ensure_directory(const char *path);
  * @brief Sleeps for specified milliseconds.
  */
 void sleep_ms(int milliseconds);
+
+/**
+ * @brief Appends an entry to the system audit trail log (data/audit_trail.log).
+ */
+void audit_log(const char *action, const char *details);
+
+/**
+ * @brief Returns 1 if given due_date (YYYY-MM-DD) is earlier than current system date.
+ */
+int is_date_overdue(const char *due_date);
 
 #endif /* UTILS_H */

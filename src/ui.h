@@ -1,7 +1,7 @@
 /**
  * @file ui.h
  * @brief High-impact Cyberpunk / Volt aesthetic terminal UI library.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef UI_H

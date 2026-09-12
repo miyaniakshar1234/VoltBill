@@ -1,7 +1,7 @@
 /**
  * @file analytics.h
  * @brief Consumption analytics, Unicode sparkline charts, and carbon footprint engine.
- * @author Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)
+ * @author Akshar Miyani
  */
 
 #ifndef ANALYTICS_H
