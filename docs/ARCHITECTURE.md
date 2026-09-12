@@ -202,8 +202,17 @@ Every card row emitted through `ui_card_row()` and `ui_card_text()` computes dyn
 
 Emitting exact spaces before rendering the right border `║`, guaranteeing mathematically perfect vertical column alignment across all DEC VT100 / xterm / Windows Terminal sessions.
 
-### 5.3 2D Matrix Symbology (UPI QR Generator)
-Rather than requiring an external image viewer, VoltBill embeds a native 2D matrix synthesizer directly into the terminal output. It renders a 29×29 QR matrix with quiet zones, finder patterns at \((0,0), (0,22), (22,0)\), timing tracks, and simulated error correction alignment patterns using full Unicode block glyphs (`██` and `  `). The QR matrix is dynamically centered within the card frame via `ui_card_qr()`, ensuring complete aesthetic enclosure.
+### 5.3 Real ISO/IEC 18004 QR Engine & 24-bit BMP Synthesis
+
+VoltBill integrates an authentic, zero-dependency, pure C ISO/IEC 18004 Model 2 QR Code synthesizer (`src/qrcodegen.c`, `src/qrcodegen.h`):
+
+1. **Standard Bitstream Encoding:** Encodes arbitrary text payloads, including standard Indian UPI deep-link payment vectors:
+   ```text
+   upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill%20Utility&am=<AMOUNT>&cu=INR&tn=<BILL_ID>
+   ```
+2. **Reed-Solomon Error Correction:** Computes Galois Field $\text{GF}(2^8)$ generator polynomials and interleaves Reed-Solomon error correction codewords to guarantee scannability even with physical surface noise or lens distortion.
+3. **High-Contrast Terminal Inversion:** Smartphone camera scanning algorithms require dark modules on a light background. VoltBill renders with TrueColor ANSI white background (`\033[47m`) and black foreground (`\033[30m`), wrapping the matrix in an ISO-compliant 4-module quiet zone. It uses Unicode half-blocks (`▀`, `▄`, `█`, `' '`) so that 2 vertical QR modules map into 1 terminal row, centering the QR code within the `ui_card_*` frame.
+4. **Standalone 24-Bit TrueColor BMP Exporter (`storage_export_qr_bmp`):** Simultaneously writes an uncompressed, 300 DPI 24-bit bitmap file (`data/bills/<ID>_qr.bmp`) directly to disk using standard 54-byte BMP/DIB header serialization, enabling high-resolution printing and instant offline mobile scanning.
 
 ---
 

@@ -18,6 +18,7 @@
   #include <windows.h>
   #include <conio.h>
   #include <direct.h>
+  #include <io.h>
   static DWORD original_out_mode = 0;
   static UINT original_cp = 0;
   static UINT original_output_cp = 0;
@@ -139,6 +140,11 @@ int read_key(void) {
 }
 
 void pause_prompt(void) {
+#ifdef _WIN32
+    if (!_isatty(_fileno(stdin))) return;
+#else
+    if (!isatty(STDIN_FILENO)) return;
+#endif
     printf("\n  \033[90m[Press any key to continue...]\033[0m ");
     fflush(stdout);
     read_key();

@@ -58,12 +58,13 @@ VoltBill includes a comprehensive enterprise-grade technical documentation suite
 | **⚠️ Defaulters & Notices** | Identifies delinquent accounts with outstanding arrears and generates official text **Power Disconnection Notices** (`data/notices/NOTICE_VB-xxxx.txt`). |
 | **📊 Visual Terminal Analytics** | Renders horizontal energy consumption gradient bars, historical sparkline waveforms (` ▂▃▄▅▆▇█`), daily burn rates, and predictive projections. |
 | **🌱 Eco-Telemetry & Carbon Ledger** | Computes greenhouse emissions ($0.82 \text{ kg } CO_2\text{/kWh}$) and calculates mature trees required to neutralize the footprint. |
-| **📱 Native ASCII QR Payments** | Generates an authentic 29×29 2D ASCII UPI QR matrix directly in the terminal for instant mobile scanning and settlement. |
+| **📱 Real ISO/IEC 18004 QR Engine** | Generates authentic, 100% phone-camera-scannable QR matrices in the terminal with inverted high-contrast white background (`\033[47m`), black modules, and automatic 24-bit 300 DPI BMP image export (`data/bills/<ID>_qr.bmp`). |
+| **🏭 SCADA Substation & Grid Telemetry** | Live power distribution monitor calculating transformer load ($10\text{ MVA}$), grid frequency ($50.012\text{ Hz}$), reactive power vectors ($Q$), and harmonic distortion ($THD$). |
 | **💳 Payment & Audit Ledger** | Supports Cash, UPI, Credit/Debit Cards, and NetBanking. Generates verified receipts (`REC-xxxx`), tracks arrears, and advances. |
 | **🔒 Security Audit Trail** | Appends timestamped actions to `data/audit_trail.log` recording customer additions, billing events, and payments. |
 | **⚙️ Dynamic Tariff Config** | Runtime editable tariffs stored in `config/tariffs.cfg` — modify slab rates and taxes without recompiling code! |
 | **💾 Persistence & JSON Backup** | Fast binary datastores (`data/*.dat`), automated CSV spreadsheets (`data/export_*.csv`), and timestamped JSON snapshots (`data/backups/`). |
-| **💻 Scriptable CLI Subcommands** | Direct command-line automation (`voltbill bill`, `voltbill pay`, `voltbill status`, `voltbill batch`, `voltbill backup`). |
+| **💻 Scriptable CLI Subcommands** | Direct command-line automation (`voltbill bill`, `voltbill pay`, `voltbill status`, `voltbill calc`, `voltbill qr`, `voltbill scada`, `voltbill batch`, `voltbill backup`). |
 
 ---
 
@@ -155,6 +156,12 @@ voltbill status VB-1001
 
 # ⚡ Instant Tariff & What-If Bill Simulator (Units, Category [0-3], Solar Export)
 voltbill calc 300.0 0 40.0
+
+# 📱 Real ISO/IEC 18004 QR Matrix Generator (Any Text/UPI Link)
+voltbill qr "upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill&am=1250.00&cu=INR"
+
+# 🏭 Live SCADA Substation & Grid Frequency Telemetry Monitor
+voltbill scada
 
 # Display developer info and version
 voltbill --version

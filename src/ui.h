@@ -117,6 +117,11 @@ void ui_card_end(int width);
 void ui_card_qr(int width, const char *payload);
 
 /**
+ * @brief Renders a dedicated full-screen high-contrast QR view with quiet zones and instructions.
+ */
+void ui_render_fullscreen_qr(const char *title, const char *payload, const char *subtext);
+
+/**
  * @brief Draws a cyber double-bordered card top.
  */
 void ui_box_top(int width, const char *title);

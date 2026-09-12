@@ -16,6 +16,7 @@ set(SOURCES
     src/payment.c
     src/analytics.c
     src/storage.c
+    src/qrcodegen.c
 )
 
 # Executable target

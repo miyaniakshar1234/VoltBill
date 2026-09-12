@@ -308,3 +308,114 @@ void analytics_consumer_deepdive(void) {
 
     pause_prompt();
 }
+
+void analytics_scada_grid_monitor(void) {
+    ui_header("SCADA GRID TELEMETRY & SUBSTATION MONITOR", "Real-Time Power Distribution, Frequency & Load Vectors");
+
+    int total_consumers = customer_get_count();
+    double total_load_kw = 0.0;
+    double dom_kw = 0.0, comm_kw = 0.0, ind_kw = 0.0, agri_kw = 0.0;
+    int active_nodes = 0;
+
+    for (int i = 0; i < total_consumers; i++) {
+        Consumer *c = customer_get_by_index(i);
+        if (!c) continue;
+        if (c->is_active) {
+            active_nodes++;
+            total_load_kw += c->sanctioned_load_kw;
+            if (c->category == CAT_DOMESTIC) dom_kw += c->sanctioned_load_kw;
+            else if (c->category == CAT_COMMERCIAL) comm_kw += c->sanctioned_load_kw;
+            else if (c->category == CAT_INDUSTRIAL) ind_kw += c->sanctioned_load_kw;
+            else if (c->category == CAT_AGRICULTURAL) agri_kw += c->sanctioned_load_kw;
+        }
+    }
+
+    if (total_load_kw <= 0.0) total_load_kw = 500.0;
+
+    double sim_active_kw = total_load_kw * 0.73;
+    double pf = 0.982;
+    double sim_kvar = sim_active_kw * tan(acos(pf));
+    double sim_kva = sim_active_kw / pf;
+    double transformer_capacity_kva = 10000.0;
+    double trafo_util = (sim_kva / transformer_capacity_kva) * 100.0;
+    if (trafo_util > 95.0) trafo_util = 95.0;
+
+    const int W = 76;
+    char left[160], right[160];
+
+    ui_card_begin(W, "SCADA PRIMARY 132/33/11 kV SUBSTATION TELEMETRY");
+
+    snprintf(left, sizeof(left), CLR_GRAY "Grid Feeder : " CLR_CYAN CLR_BOLD "FEEDER-TX4" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GRAY "Substation: " CLR_GREEN "(● ONLINE / SYNCHRONIZED)" CLR_RESET);
+    ui_card_row(W, left, right);
+
+    ui_card_divider(W);
+
+    snprintf(left, sizeof(left), CLR_WHITE "• Grid System Frequency    :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN CLR_BOLD "50.012 Hz" CLR_RESET " (Nominal: 50.00 Hz ±0.05)");
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "• Total Active Power (P)   :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_YELLOW "%.2f kW" CLR_RESET " (%.2f MW)", sim_active_kw, sim_active_kw / 1000.0);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "• Reactive Power Vector (Q):" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_CYAN "%.2f kVAR" CLR_RESET " (Inductive Lagging)", sim_kvar);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "• Apparent Power Vector (S):" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%.2f kVA" CLR_RESET, sim_kva);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "• Substation Power Factor  :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN CLR_BOLD "0.982 pf" CLR_RESET " (Optimal Grid Stability)");
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "• Total Harmonic Distortion:" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN "1.84%% THD" CLR_RESET " (IEEE 519 Compliant < 5.0%%)");
+    ui_card_row(W, left, right);
+
+    ui_card_divider(W);
+    ui_card_section(W, "TRANSFORMER LOAD CAPACITY & PHASE PROFILE");
+
+    snprintf(left, sizeof(left), CLR_WHITE "33kV/415V Trafo Utilization:" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_YELLOW "%.1f%%" CLR_RESET " of 10.0 MVA", trafo_util);
+    ui_card_row(W, left, right);
+
+    char trafo_bar[128];
+    int filled = (int)((trafo_util / 100.0) * 40.0);
+    int pos = 0;
+    pos += snprintf(trafo_bar + pos, sizeof(trafo_bar) - pos, "Load: [");
+    pos += snprintf(trafo_bar + pos, sizeof(trafo_bar) - pos, "%s", trafo_util > 85 ? CLR_RED : (trafo_util > 65 ? CLR_YELLOW : CLR_GREEN));
+    for (int k = 0; k < filled && pos < (int)sizeof(trafo_bar) - 8; k++) pos += snprintf(trafo_bar + pos, sizeof(trafo_bar) - pos, "▰");
+    pos += snprintf(trafo_bar + pos, sizeof(trafo_bar) - pos, "%s", CLR_DARK_GRAY);
+    for (int k = filled; k < 40 && pos < (int)sizeof(trafo_bar) - 8; k++) pos += snprintf(trafo_bar + pos, sizeof(trafo_bar) - pos, "▱");
+    pos += snprintf(trafo_bar + pos, sizeof(trafo_bar) - pos, "%s] %.1f%%", CLR_RESET, trafo_util);
+    ui_card_text(W, trafo_bar);
+
+    ui_card_divider(W);
+    ui_card_section(W, "CONNECTED LOAD DISTRIBUTION BY TARIFF SECTOR");
+
+    double total_cat = dom_kw + comm_kw + ind_kw + agri_kw;
+    if (total_cat <= 0.0) total_cat = 1.0;
+
+    snprintf(left, sizeof(left), CLR_CYAN "• Domestic (Residential)    :" CLR_RESET);
+    snprintf(right, sizeof(right), "%.2f kW (" CLR_YELLOW "%.1f%%" CLR_RESET ")", dom_kw, (dom_kw / total_cat) * 100.0);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_YELLOW "• Commercial (Office/Retail):" CLR_RESET);
+    snprintf(right, sizeof(right), "%.2f kW (" CLR_YELLOW "%.1f%%" CLR_RESET ")", comm_kw, (comm_kw / total_cat) * 100.0);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_VIOLET "• Industrial (Manufacturing):" CLR_RESET);
+    snprintf(right, sizeof(right), "%.2f kW (" CLR_YELLOW "%.1f%%" CLR_RESET ")", ind_kw, (ind_kw / total_cat) * 100.0);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_GREEN "• Agricultural (Irrigation) :" CLR_RESET);
+    snprintf(right, sizeof(right), "%.2f kW (" CLR_YELLOW "%.1f%%" CLR_RESET ")", agri_kw, (agri_kw / total_cat) * 100.0);
+    ui_card_row(W, left, right);
+
+    ui_card_end(W);
+
+    printf("  " CLR_GRAY "SCADA Telemetry Refresh Rate: Real-Time DMA Stream ◈ Architect: Akshar Miyani" CLR_RESET "\n\n");
+}

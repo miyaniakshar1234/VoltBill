@@ -52,7 +52,7 @@ exit /b 1
 :DO_BUILD
 if "%COMPILER%"=="MSVC" (
     echo [BUILD] Compiling with MSVC cl.exe...
-    cl /nologo /O2 /W3 /D_CRT_SECURE_NO_WARNINGS /Fe:bin\voltbill.exe src\main.c src\utils.c src\ui.c src\banner.c src\tariff.c src\customer.c src\billing.c src\payment.c src\analytics.c src\storage.c
+    cl /nologo /O2 /W3 /D_CRT_SECURE_NO_WARNINGS /Fe:bin\voltbill.exe src\main.c src\utils.c src\ui.c src\banner.c src\tariff.c src\customer.c src\billing.c src\payment.c src\analytics.c src\storage.c src\qrcodegen.c
     if %errorlevel% neq 0 (
         echo [ERROR] Compilation failed!
         exit /b %errorlevel%
@@ -60,7 +60,7 @@ if "%COMPILER%"=="MSVC" (
     if exist *.obj del *.obj >nul 2>nul
 ) else (
     echo [BUILD] Compiling with %COMPILER%...
-    gcc -O2 -Wall -std=c99 -o bin/voltbill.exe src/main.c src/utils.c src/ui.c src/banner.c src/tariff.c src/customer.c src/billing.c src/payment.c src/analytics.c src/storage.c -lm
+    gcc -O2 -Wall -std=c99 -o bin/voltbill.exe src/main.c src/utils.c src/ui.c src/banner.c src/tariff.c src/customer.c src/billing.c src/payment.c src/analytics.c src/storage.c src/qrcodegen.c -lm
     if %errorlevel% neq 0 (
         echo [ERROR] Compilation failed!
         exit /b %errorlevel%

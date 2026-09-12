@@ -7,9 +7,12 @@
 
 #include "ui.h"
 #include "utils.h"
+#include "qrcodegen.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdarg.h>
 
 int ui_visual_len(const char *s) {
@@ -159,29 +162,57 @@ void ui_card_end(int width) {
 
 void ui_card_qr(int width, const char *payload) {
     if (width <= 10) width = 76;
+    if (!payload || strlen(payload) == 0) {
+        payload = "upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill%20Utility&cu=INR";
+    }
 
-    const char *qr_lines[] = {
-        CLR_WHITE "█████████████████████████████████" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " " CLR_CYAN "█▀▄" CLR_WHITE " " CLR_DARK_GRAY "███████" CLR_WHITE " ██" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "▄ █" CLR_WHITE " " CLR_DARK_GRAY "█     █" CLR_WHITE " ██" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "██▀" CLR_WHITE " " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " ██" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "▄▀▄" CLR_WHITE " " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " ██" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "█▄█" CLR_WHITE " " CLR_DARK_GRAY "█     █" CLR_WHITE " ██" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " █ █ " CLR_DARK_GRAY "███████" CLR_WHITE " ██" CLR_RESET,
-        CLR_WHITE "██         ▀█▄         ██" CLR_RESET,
-        CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_CYAN " " CLR_WHITE "█ " CLR_YELLOW "▀▄▀" CLR_WHITE " " CLR_GREEN "█▀█" CLR_WHITE "  ██" CLR_RESET,
-        CLR_WHITE "██   " CLR_CYAN "▄█▄" CLR_WHITE "   █ " CLR_YELLOW "█ █" CLR_WHITE " " CLR_GREEN "▄▄▄" CLR_WHITE "  ██" CLR_RESET,
-        CLR_WHITE "█████████████████████████████████" CLR_RESET
-    };
-    int num_lines = sizeof(qr_lines) / sizeof(qr_lines[0]);
+    uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
+    uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
 
-    for (int i = 0; i < num_lines; i++) {
-        int vis = ui_visual_len(qr_lines[i]);
-        int left_pad = (width - vis) / 2;
-        int right_pad = width - left_pad - vis;
-        if (left_pad < 0) left_pad = 0;
-        if (right_pad < 0) right_pad = 0;
-        printf("  " DBOX_V "%*s%s%*s" DBOX_V "\n", left_pad, "", qr_lines[i], right_pad, "");
+    bool ok = qrcodegen_encodeText(payload, tempBuffer, qrcode,
+                                   qrcodegen_Ecc_LOW, 1, 10, qrcodegen_Mask_AUTO, true);
+    if (!ok) {
+        ok = qrcodegen_encodeText("upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill",
+                                  tempBuffer, qrcode, qrcodegen_Ecc_LOW, 1, 10, qrcodegen_Mask_AUTO, true);
+    }
+    if (!ok) return;
+
+    int size = qrcodegen_getSize(qrcode);
+    int border = 2; /* 2 quiet zone modules on all sides */
+    int total_width = size + 2 * border;
+
+    int left_pad = (width - total_width) / 2;
+    int right_pad = width - left_pad - total_width;
+    if (left_pad < 0) left_pad = 0;
+    if (right_pad < 0) right_pad = 0;
+
+    /* Render using standard half-blocks on pure white background with black foreground:
+       Top module: row y
+       Bottom module: row y + 1
+       White background (\033[47m) + Black foreground (\033[30m)
+       Top dark, bottom dark  -> █
+       Top dark, bottom light -> ▀
+       Top light, bottom dark -> ▄
+       Top light, bottom light -> ' '
+    */
+    for (int y = -border; y < size + border; y += 2) {
+        printf("  " DBOX_V "%*s\033[47m\033[30m", left_pad, "");
+        for (int x = -border; x < size + border; x++) {
+            bool top = (x >= 0 && x < size && y >= 0 && y < size) ? qrcodegen_getModule(qrcode, x, y) : false;
+            int y2 = y + 1;
+            bool btm = (x >= 0 && x < size && y2 >= 0 && y2 < size) ? qrcodegen_getModule(qrcode, x, y2) : false;
+
+            if (top && btm) {
+                printf("█");
+            } else if (top && !btm) {
+                printf("▀");
+            } else if (!top && btm) {
+                printf("▄");
+            } else {
+                printf(" ");
+            }
+        }
+        printf("\033[0m%*s" DBOX_V "\n", right_pad, "");
     }
 
     char upi_label[128];
@@ -192,6 +223,38 @@ void ui_card_qr(int width, const char *payload) {
     if (u_lpad < 0) u_lpad = 0;
     if (u_rpad < 0) u_rpad = 0;
     printf("  " DBOX_V "%*s%s%*s" DBOX_V "\n", u_lpad, "", upi_label, u_rpad, "");
+
+    snprintf(upi_label, sizeof(upi_label), CLR_GRAY "Bharat BillPay (BBPS) ◈ Instant Digital Settlement" CLR_RESET);
+    u_vis = ui_visual_len(upi_label);
+    u_lpad = (width - u_vis) / 2;
+    u_rpad = width - u_lpad - u_vis;
+    if (u_lpad < 0) u_lpad = 0;
+    if (u_rpad < 0) u_rpad = 0;
+    printf("  " DBOX_V "%*s%s%*s" DBOX_V "\n", u_lpad, "", upi_label, u_rpad, "");
+}
+
+void ui_render_fullscreen_qr(const char *title, const char *payload, const char *subtext) {
+    if (!payload || strlen(payload) == 0) return;
+
+    clear_screen();
+    ui_header(title ? title : "BHARAT BILLPAY DIGITAL UPI QR", "Instant Payment & Direct Settlement");
+
+    int card_w = 76;
+    ui_card_begin(card_w, "BHARAT BILLPAY / INSTANT DIGITAL UPI");
+    if (subtext && strlen(subtext) > 0) {
+        ui_card_text(card_w, CLR_WHITE CLR_BOLD "%s" CLR_RESET, subtext);
+        ui_card_divider(card_w);
+    }
+
+    ui_card_qr(card_w, payload);
+
+    ui_card_divider(card_w);
+    ui_card_text(card_w, CLR_YELLOW "• Supported Apps : Google Pay, PhonePe, Paytm, BHIM, Cred, Any UPI" CLR_RESET);
+    ui_card_text(card_w, CLR_GREEN  "• High-Res Image : Exported to data/bills/ (BMP for printing)" CLR_RESET);
+    ui_card_end(card_w);
+
+    printf("\n  " CLR_CYAN "[Press Enter or any key to return...]" CLR_RESET " ");
+    pause_prompt();
 }
 
 void ui_box_top(int width, const char *title) {

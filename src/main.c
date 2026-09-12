@@ -76,7 +76,19 @@ static void menu_billing_management(void) {
                     Consumer *c = customer_find_by_id(b->consumer_id);
                     clear_screen();
                     billing_render_invoice(b, c);
-                    pause_prompt();
+                    printf("  " CLR_CYAN "Quick Actions:" CLR_RESET "\n");
+                    printf("    [1] View Fullscreen Scannable QR Code Matrix\n");
+                    printf("    [0] Return to Billing Menu\n\n");
+                    int qact = get_safe_int("  Select Action [0-1]: ", 0, 1);
+                    if (qact == 1) {
+                        char qr_link[256];
+                        snprintf(qr_link, sizeof(qr_link), "upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill%%20Utility&am=%.2f&cu=INR&tn=%s",
+                                 b->net_payable_amount, b->bill_id);
+                        char sub[128];
+                        snprintf(sub, sizeof(sub), "Bill: %s ◈ Consumer: %s ◈ Amount: Rs. %.2f",
+                                 b->bill_id, b->consumer_id, b->net_payable_amount);
+                        ui_render_fullscreen_qr("INSTANT DIGITAL UPI SETTLEMENT", qr_link, sub);
+                    }
                 } else {
                     ui_message_box("Not Found", "Bill ID was not found.", 0);
                 }
@@ -111,16 +123,18 @@ static void menu_analytics(void) {
     const char *opts[] = {
         "Grid Overview: Revenue, Load & Sector Charts",
         "Consumer Deep-Dive: Historical Trends & Carbon Footprint",
+        "Real-Time SCADA Substation & Grid Telemetry Monitor",
         "Return to Main Dashboard"
     };
 
     while (1) {
-        int choice = ui_menu("ANALYTICS & ENVIRONMENTAL INTELLIGENCE", opts, 3, 0);
-        if (choice < 0 || choice == 2) break;
+        int choice = ui_menu("ANALYTICS & ENVIRONMENTAL INTELLIGENCE", opts, 4, 0);
+        if (choice < 0 || choice == 3) break;
 
         switch (choice) {
             case 0: analytics_system_overview(); break;
             case 1: analytics_consumer_deepdive(); break;
+            case 2: analytics_scada_grid_monitor(); pause_prompt(); break;
             default: break;
         }
     }
@@ -212,6 +226,8 @@ static void print_help(void) {
     printf("  voltbill pay <id> <amount> [m]   Process payment (mode 0=Cash, 1=UPI, 2=Card, 3=NetBank)\n");
     printf("  voltbill status <id>             Show instant balance and meter status\n");
     printf("  voltbill calc <units> [cat] [sol]Instant tariff simulation (0=Dom, 1=Comm, 2=Ind, 3=Agri)\n");
+    printf("  voltbill qr <payload>            Synthesize & display real scannable QR matrix\n");
+    printf("  voltbill scada, voltbill grid    Launch real-time SCADA substation grid monitor\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -282,6 +298,19 @@ int main(int argc, char *argv[]) {
         /* Scripting Subcommand: voltbill status <consumer-id> */
         if (strcmp(argv[1], "status") == 0 && argc >= 3) {
             customer_quick_status(argv[2]);
+            restore_console();
+            return 0;
+        }
+        /* Scripting Subcommand: voltbill qr <text/url> */
+        if (strcmp(argv[1], "qr") == 0 && argc >= 3) {
+            const char *qr_data = argv[2];
+            ui_render_fullscreen_qr("VOLTBILL TERMINAL QR SYNTHESIZER", qr_data, "Scannable Standard ISO/IEC 18004 2D Barcode");
+            restore_console();
+            return 0;
+        }
+        /* Scripting Subcommand: voltbill scada / grid */
+        if (strcmp(argv[1], "scada") == 0 || strcmp(argv[1], "grid") == 0) {
+            analytics_scada_grid_monitor();
             restore_console();
             return 0;
         }

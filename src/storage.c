@@ -11,8 +11,11 @@
 #include "tariff.h"
 #include "ui.h"
 #include "utils.h"
+#include "qrcodegen.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <time.h>
 
 static const char *CONSUMER_DAT = "data/consumers.dat";
@@ -404,4 +407,108 @@ void storage_display_stats(void) {
     ui_card_end(W);
 
     pause_prompt();
+}
+
+#pragma pack(push, 1)
+typedef struct {
+    uint16_t bfType;
+    uint32_t bfSize;
+    uint16_t bfReserved1;
+    uint16_t bfReserved2;
+    uint32_t bfOffBits;
+} BmpHeader;
+
+typedef struct {
+    uint32_t biSize;
+    int32_t  biWidth;
+    int32_t  biHeight;
+    uint16_t biPlanes;
+    uint16_t biBitCount;
+    uint32_t biCompression;
+    uint32_t biSizeImage;
+    int32_t  biXPelsPerMeter;
+    int32_t  biYPelsPerMeter;
+    uint32_t biClrUsed;
+    uint32_t biClrImportant;
+} BmpInfoHeader;
+#pragma pack(pop)
+
+int storage_export_qr_bmp(const char *filepath, const char *payload) {
+    if (!filepath || !payload) return 0;
+
+    uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
+    uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+
+    bool ok = qrcodegen_encodeText(payload, tempBuffer, qrcode,
+                                   qrcodegen_Ecc_LOW, 1, 10, qrcodegen_Mask_AUTO, true);
+    if (!ok) {
+        ok = qrcodegen_encodeText("upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill",
+                                  tempBuffer, qrcode, qrcodegen_Ecc_LOW, 1, 10, qrcodegen_Mask_AUTO, true);
+    }
+    if (!ok) return 0;
+
+    int size = qrcodegen_getSize(qrcode);
+    int border = 4; /* Standard 4-module quiet zone */
+    int total_modules = size + 2 * border;
+    int scale = 10; /* 10x10 pixels per QR module */
+    int img_w = total_modules * scale;
+    int img_h = total_modules * scale;
+
+    int row_stride = ((img_w * 3 + 3) / 4) * 4;
+    int pad_bytes = row_stride - (img_w * 3);
+    uint32_t img_data_size = (uint32_t)(row_stride * img_h);
+    uint32_t file_size = 54 + img_data_size;
+
+    BmpHeader bfh;
+    bfh.bfType = 0x4D42; /* 'BM' */
+    bfh.bfSize = file_size;
+    bfh.bfReserved1 = 0;
+    bfh.bfReserved2 = 0;
+    bfh.bfOffBits = 54;
+
+    BmpInfoHeader bih;
+    bih.biSize = 40;
+    bih.biWidth = img_w;
+    bih.biHeight = img_h;
+    bih.biPlanes = 1;
+    bih.biBitCount = 24;
+    bih.biCompression = 0;
+    bih.biSizeImage = img_data_size;
+    bih.biXPelsPerMeter = 2835;
+    bih.biYPelsPerMeter = 2835;
+    bih.biClrUsed = 0;
+    bih.biClrImportant = 0;
+
+    ensure_directory("data");
+    ensure_directory("data/bills");
+
+    FILE *f = fopen(filepath, "wb");
+    if (!f) return 0;
+
+    fwrite(&bfh, sizeof(bfh), 1, f);
+    fwrite(&bih, sizeof(bih), 1, f);
+
+    for (int y = img_h - 1; y >= 0; y--) {
+        int mod_y = y / scale - border;
+        for (int x = 0; x < img_w; x++) {
+            int mod_x = x / scale - border;
+            bool dark = false;
+            if (mod_x >= 0 && mod_x < size && mod_y >= 0 && mod_y < size) {
+                dark = qrcodegen_getModule(qrcode, mod_x, mod_y);
+            }
+            if (dark) {
+                uint8_t rgb[3] = {0, 0, 0};
+                fwrite(rgb, 1, 3, f);
+            } else {
+                uint8_t rgb[3] = {255, 255, 255};
+                fwrite(rgb, 1, 3, f);
+            }
+        }
+        for (int p = 0; p < pad_bytes; p++) {
+            fputc(0, f);
+        }
+    }
+
+    fclose(f);
+    return 1;
 }

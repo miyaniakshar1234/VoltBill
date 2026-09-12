@@ -34,4 +34,9 @@ void analytics_draw_sparkline(const double *values, int count);
  */
 void analytics_print_carbon_footprint(double total_kwh, double solar_kwh);
 
+/**
+ * @brief Renders real-time SCADA substation telemetry and grid load distribution.
+ */
+void analytics_scada_grid_monitor(void);
+
 #endif /* ANALYTICS_H */

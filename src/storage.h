@@ -51,4 +51,12 @@ void storage_seed_demo_data(void);
  */
 void storage_display_stats(void);
 
+/**
+ * @brief Exports a standard 24-bit high-resolution BMP image of a QR code to disk.
+ * @param filepath Destination path (e.g. data/bills/BILL-1001_qr.bmp)
+ * @param payload Content string / UPI URL
+ * @return 1 on success, 0 on failure.
+ */
+int storage_export_qr_bmp(const char *filepath, const char *payload);
+
 #endif /* STORAGE_H */

@@ -12,6 +12,7 @@ build/
 # Data files and generated reports
 data/*.dat
 data/bills/*.txt
+data/bills/*.bmp
 data/notices/*.txt
 data/backups/
 data/audit_trail.log
