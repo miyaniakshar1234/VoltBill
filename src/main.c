@@ -54,12 +54,13 @@ static void menu_billing_management(void) {
         "View All Issued Bills & Payment Status",
         "Filter & Query Invoices (Paid / Unpaid / Consumer)",
         "Inspect Specific Invoice by Bill ID",
+        "Instant Tariff & What-If Bill Simulator",
         "Return to Main Dashboard"
     };
 
     while (1) {
-        int choice = ui_menu("METER READING & BILLING ENGINE", opts, 6, 0);
-        if (choice < 0 || choice == 5) break;
+        int choice = ui_menu("METER READING & BILLING ENGINE", opts, 7, 0);
+        if (choice < 0 || choice == 6) break;
 
         switch (choice) {
             case 0: billing_generate_flow(); break;
@@ -81,6 +82,7 @@ static void menu_billing_management(void) {
                 }
                 break;
             }
+            case 5: billing_simulator_flow(); break;
             default: break;
         }
     }
@@ -209,6 +211,7 @@ static void print_help(void) {
     printf("  voltbill bill <id> <reading>     Generate invoice directly from terminal\n");
     printf("  voltbill pay <id> <amount> [m]   Process payment (mode 0=Cash, 1=UPI, 2=Card, 3=NetBank)\n");
     printf("  voltbill status <id>             Show instant balance and meter status\n");
+    printf("  voltbill calc <units> [cat] [sol]Instant tariff simulation (0=Dom, 1=Comm, 2=Ind, 3=Agri)\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -249,6 +252,15 @@ int main(int argc, char *argv[]) {
         }
         if (strcmp(argv[1], "--demo") == 0 || strcmp(argv[1], "--seed") == 0) {
             storage_seed_demo_data();
+        }
+        /* Scripting Subcommand: voltbill calc <units> [category] [solar] */
+        if (strcmp(argv[1], "calc") == 0 && argc >= 3) {
+            double units = atof(argv[2]);
+            int cat = (argc >= 4) ? atoi(argv[3]) : 0;
+            double solar = (argc >= 5) ? atof(argv[4]) : 0.0;
+            billing_quick_calc(units, cat, solar);
+            restore_console();
+            return 0;
         }
         /* Scripting Subcommand: voltbill bill <consumer-id> <curr-reading> */
         if (strcmp(argv[1], "bill") == 0 && argc >= 4) {

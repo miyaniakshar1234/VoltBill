@@ -85,34 +85,55 @@ void analytics_print_carbon_footprint(double total_kwh, double solar_kwh) {
     if (co2_net_kg < 0.0) co2_net_kg = 0.0;
 
     double trees_needed = co2_net_kg / 22.0;
-    double solar_share_pct = (total_kwh > 0.0) ? (solar_kwh / total_kwh) * 100.0 : 0.0;
+
+    const int W = 76;
+    char left[160], right[160];
 
     printf("\n");
-    printf("  " BOX_TL);
-    for (int i = 0; i < 76; i++) printf(BOX_H);
-    printf(BOX_TR "\n");
+    ui_card_begin(W, "ECO-TELEMETRY & CARBON NEUTRALITY LEDGER");
 
-    printf("  " BOX_V "  ");
-    ui_print_gradient("🌱 ECO-TELEMETRY & CARBON NEUTRALITY LEDGER", 0, 255, 163, 0, 240, 255, 1);
-    printf("                  " BOX_V "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Gross Energy Sourced   :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%.1f kWh" CLR_RESET, total_kwh);
+    ui_card_row(W, left, right);
 
-    printf("  " BOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(BOX_H);
-    printf(BOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Solar Energy Exported  :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN "%.1f kWh (Clean Renewable)" CLR_RESET, solar_kwh);
+    ui_card_row(W, left, right);
 
-    printf("  " BOX_V "  " CLR_GRAY "Gross Energy Sourced   :" CLR_RESET " %10.1f kWh                                  " BOX_V "\n", total_kwh);
-    printf("  " BOX_V "  " CLR_GRAY "Solar Energy Exported  :" CLR_RESET " " CLR_GREEN "%10.1f kWh" CLR_RESET " " CLR_DIM "(Clean Renewable)" CLR_RESET "                  " BOX_V "\n", solar_kwh);
-    printf("  " BOX_V "  " CLR_GRAY "Clean Solar Share Ratio:" CLR_RESET " ");
-    ui_gauge_bar(solar_kwh, (total_kwh > 0.0) ? total_kwh : 1.0, 20, "%%");
-    printf("          " BOX_V "\n");
-    printf("  " BOX_V "  " CLR_GRAY "Gross Grid CO2 Footprint:" CLR_RESET " " CLR_RED "%10.1f kg CO2" CLR_RESET "                               " BOX_V "\n", co2_gross_kg);
-    printf("  " BOX_V "  " CLR_GRAY "Solar Carbon Abatement  :" CLR_RESET " " CLR_GREEN "%10.1f kg CO2 (Avoided)" CLR_RESET "                     " BOX_V "\n", co2_avoided_kg);
-    printf("  " BOX_V "  " CLR_GRAY "Net CO2 Impact On Grid :" CLR_RESET " " CLR_YELLOW "%10.1f kg CO2" CLR_RESET "                               " BOX_V "\n", co2_net_kg);
-    printf("  " BOX_V "  " CLR_GRAY "Trees Req. to Neutralize:" CLR_RESET " " CLR_GREEN "%10.1f mature trees / year" CLR_RESET "                  " BOX_V "\n", trees_needed);
+    char gauge[128];
+    double ratio = (total_kwh > 0.0) ? (solar_kwh / total_kwh) : 0.0;
+    if (ratio > 1.0) ratio = 1.0;
+    int filled = (int)(ratio * 20.0);
+    int pos = 0;
+    pos += snprintf(gauge + pos, sizeof(gauge) - pos, "[%s", CLR_GREEN);
+    for (int i = 0; i < filled; i++) pos += snprintf(gauge + pos, sizeof(gauge) - pos, "▰");
+    pos += snprintf(gauge + pos, sizeof(gauge) - pos, "%s", CLR_DARK_GRAY);
+    for (int i = filled; i < 20; i++) pos += snprintf(gauge + pos, sizeof(gauge) - pos, "▱");
+    pos += snprintf(gauge + pos, sizeof(gauge) - pos, "%s] %5.1f%%", CLR_RESET, ratio * 100.0);
 
-    printf("  " BOX_BL);
-    for (int i = 0; i < 76; i++) printf(BOX_H);
-    printf(BOX_BR "\n\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Clean Solar Share Ratio:" CLR_RESET);
+    ui_card_row(W, left, gauge);
+
+    ui_card_divider(W);
+
+    snprintf(left, sizeof(left), CLR_GRAY "Gross Grid CO2 Output  :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_RED "%.1f kg CO2" CLR_RESET, co2_gross_kg);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_GRAY "Solar Carbon Abatement :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN "%.1f kg CO2 (Avoided)" CLR_RESET, co2_avoided_kg);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_GRAY "Net CO2 Impact On Grid :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_YELLOW "%.1f kg CO2" CLR_RESET, co2_net_kg);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_GRAY "Trees Req. to Neutralize:" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN "%.1f mature trees / year" CLR_RESET, trees_needed);
+    ui_card_row(W, left, right);
+
+    ui_card_end(W);
+    printf("\n");
 }
 
 void analytics_system_overview(void) {
@@ -148,36 +169,48 @@ void analytics_system_overview(void) {
         total_arrears += c->outstanding_arrears;
     }
 
-    printf("  " BOX_TL);
-    for (int i = 0; i < 76; i++) printf(BOX_H);
-    printf(BOX_TR "\n");
+    const int W = 76;
+    char left[160], right[160];
 
-    printf("  " BOX_V "  ");
-    ui_print_gradient("⚡ SYSTEM CAPACITY & REVENUE REALIZATION TELEMETRY", 0, 240, 255, 189, 0, 255, 1);
-    printf("             " BOX_V "\n");
+    ui_card_begin(W, "SYSTEM CAPACITY & REVENUE REALIZATION TELEMETRY");
 
-    printf("  " BOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(BOX_H);
-    printf(BOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_WHITE "Registered Consumers : " CLR_CYAN "%d" CLR_RESET, total_consumers);
+    snprintf(right, sizeof(right), CLR_WHITE "Total Invoices Issued: " CLR_CYAN "%d" CLR_RESET, total_bills);
+    ui_card_row(W, left, right);
 
-    printf("  " BOX_V "  " CLR_WHITE "Registered Consumers :" CLR_RESET " %-12d  " 
-           CLR_WHITE "Total Invoices Issued :" CLR_RESET " %-12d   " BOX_V "\n", total_consumers, total_bills);
-    printf("  " BOX_V "  " CLR_WHITE "Total Energy Billed  :" CLR_RESET " %-10.1f kWh  " 
-           CLR_WHITE "Total Solar Exported :" CLR_RESET " %-10.1f kWh    " BOX_V "\n", total_units_billed, total_solar_exported);
-    printf("  " BOX_V "  " CLR_WHITE "Total Gross Assessed :" CLR_RESET " ₹ %-12.2f  " 
-           CLR_WHITE "Realized Revenue Paid:" CLR_RESET " ₹ %-12.2f    " BOX_V "\n", total_assessed, total_paid);
-    printf("  " BOX_V "  " CLR_WHITE "Outstanding Arrears  :" CLR_RESET " " CLR_RED "₹ %-12.2f" CLR_RESET "  " 
-           CLR_WHITE "Realization Rate     :" CLR_RESET " " CLR_GREEN "%5.1f%%" CLR_RESET "          " BOX_V "\n", 
-           total_arrears, (total_assessed > 0.0) ? (total_paid / total_assessed) * 100.0 : 0.0);
+    snprintf(left, sizeof(left), CLR_WHITE "Total Energy Billed  : " CLR_YELLOW "%.1f kWh" CLR_RESET, total_units_billed);
+    snprintf(right, sizeof(right), CLR_WHITE "Total Solar Exported : " CLR_GREEN "%.1f kWh" CLR_RESET, total_solar_exported);
+    ui_card_row(W, left, right);
+
+    ui_card_divider(W);
+
+    snprintf(left, sizeof(left), CLR_WHITE "Total Gross Assessed : " CLR_WHITE "Rs. %.2f" CLR_RESET, total_assessed);
+    snprintf(right, sizeof(right), CLR_WHITE "Realized Revenue Paid: " CLR_GREEN "Rs. %.2f" CLR_RESET, total_paid);
+    ui_card_row(W, left, right);
 
     double rec_rate = (total_assessed > 0.0) ? (total_paid / total_assessed) * 100.0 : 0.0;
-    printf("  " BOX_V "  " CLR_GRAY "Realization Progress :" CLR_RESET " ");
-    ui_progress_bar(rec_rate, 46);
-    printf("     " BOX_V "\n");
+    snprintf(left, sizeof(left), CLR_WHITE "Outstanding Arrears  : " CLR_RED "Rs. %.2f" CLR_RESET, total_arrears);
+    snprintf(right, sizeof(right), CLR_WHITE "Realization Rate     : " CLR_GREEN "%.1f%%" CLR_RESET, rec_rate);
+    ui_card_row(W, left, right);
 
-    printf("  " BOX_BL);
-    for (int i = 0; i < 76; i++) printf(BOX_H);
-    printf(BOX_BR "\n\n");
+    ui_card_divider(W);
+
+    char prog[128];
+    double r_ratio = rec_rate / 100.0;
+    if (r_ratio > 1.0) r_ratio = 1.0;
+    int r_filled = (int)(r_ratio * 30.0);
+    int r_pos = 0;
+    r_pos += snprintf(prog + r_pos, sizeof(prog) - r_pos, "[%s", CLR_CYAN);
+    for (int i = 0; i < r_filled; i++) r_pos += snprintf(prog + r_pos, sizeof(prog) - r_pos, "▰");
+    r_pos += snprintf(prog + r_pos, sizeof(prog) - r_pos, "%s", CLR_DARK_GRAY);
+    for (int i = r_filled; i < 30; i++) r_pos += snprintf(prog + r_pos, sizeof(prog) - r_pos, "▱");
+    r_pos += snprintf(prog + r_pos, sizeof(prog) - r_pos, "%s] %5.1f%%", CLR_RESET, rec_rate);
+
+    snprintf(left, sizeof(left), CLR_GRAY "Realization Progress :" CLR_RESET);
+    ui_card_row(W, left, prog);
+
+    ui_card_end(W);
+    printf("\n");
 
     printf("  ");
     ui_print_gradient("📊 CONSUMPTION DISTRIBUTION BY SECTOR", 0, 240, 255, 255, 230, 0, 1);
@@ -238,19 +271,21 @@ void analytics_consumer_deepdive(void) {
         double latest_units = history_units[count - 1];
         double daily_burn = latest_units / 30.0;
 
-        printf("  " BOX_TL);
-        for (int i = 0; i < 76; i++) printf(BOX_H);
-        printf(BOX_TR "\n");
-        printf("  " BOX_V "  " CLR_CYAN CLR_BOLD "⚡ CONSUMPTION PROJECTIONS & BURN RATE TELEMETRY" CLR_RESET "                          " BOX_V "\n");
-        printf("  " BOX_T_RIGHT);
-        for (int i = 0; i < 76; i++) printf(BOX_H);
-        printf(BOX_T_LEFT "\n");
-        printf("  " BOX_V "  " CLR_WHITE "• Average Daily Burn Rate :" CLR_RESET " " CLR_YELLOW "%-8.2f units/day" CLR_RESET "                                " BOX_V "\n", daily_burn);
-        printf("  " BOX_V "  " CLR_WHITE "• Projected Next Month     :" CLR_RESET " " CLR_CYAN "%-8.1f units" CLR_RESET " (±5%% historical variation)         " BOX_V "\n", latest_units);
-        printf("  " BOX_V "  " CLR_WHITE "• Estimated Peak Demand    :" CLR_RESET " " CLR_GREEN "%-8.2f kW" CLR_RESET "    (Contract Load: %.2f kW)               " BOX_V "\n", c->sanctioned_load_kw * 0.78, c->sanctioned_load_kw);
-        printf("  " BOX_BL);
-        for (int i = 0; i < 76; i++) printf(BOX_H);
-        printf(BOX_BR "\n");
+        const int W = 76;
+        char left[160], right[160];
+        ui_card_begin(W, "CONSUMPTION PROJECTIONS & BURN RATE TELEMETRY");
+        snprintf(left, sizeof(left), CLR_WHITE "• Average Daily Burn Rate :" CLR_RESET);
+        snprintf(right, sizeof(right), CLR_YELLOW "%.2f units/day" CLR_RESET, daily_burn);
+        ui_card_row(W, left, right);
+
+        snprintf(left, sizeof(left), CLR_WHITE "• Projected Next Month     :" CLR_RESET);
+        snprintf(right, sizeof(right), CLR_CYAN "%.1f units" CLR_RESET " (±5%% historical variation)", latest_units);
+        ui_card_row(W, left, right);
+
+        snprintf(left, sizeof(left), CLR_WHITE "• Estimated Peak Demand    :" CLR_RESET);
+        snprintf(right, sizeof(right), CLR_GREEN "%.2f kW" CLR_RESET " (Contract Load: %.2f kW)", c->sanctioned_load_kw * 0.78, c->sanctioned_load_kw);
+        ui_card_row(W, left, right);
+        ui_card_end(W);
 
         analytics_print_carbon_footprint(latest_units, c->solar_capacity_kw * 120.0);
 

@@ -369,42 +369,39 @@ void storage_seed_demo_data(void) {
 void storage_display_stats(void) {
     ui_header("STORAGE & SYSTEM DIAGNOSTICS", "Disk Files, Memory Records, and Ledger Health");
 
-    printf("  " DBOX_TL);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
-    printf(DBOX_TR "\n");
+    const int W = 76;
+    char left[160], right[160];
 
-    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "⚡ IN-MEMORY REPOSITORIES" CLR_RESET "                                           " DBOX_V "\n");
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    ui_card_begin(W, "STORAGE & SYSTEM DIAGNOSTICS");
+    ui_card_section(W, "IN-MEMORY REPOSITORIES");
 
-    printf("  " DBOX_V "  " CLR_WHITE "Active Consumers in Memory :" CLR_RESET " %-10d / %-10d (Max)            " DBOX_V "\n",
-           customer_get_count(), MAX_CONSUMERS);
-    printf("  " DBOX_V "  " CLR_WHITE "Billed Invoices in Memory  :" CLR_RESET " %-10d / %-10d (Max)            " DBOX_V "\n",
-           billing_get_count(), MAX_BILLS);
-    printf("  " DBOX_V "  " CLR_WHITE "Payment Receipts in Memory :" CLR_RESET " %-10d / %-10d (Max)            " DBOX_V "\n",
-           payment_get_count(), MAX_PAYMENTS);
+    snprintf(left, sizeof(left), CLR_WHITE "Active Consumers in Memory :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_CYAN "%d" CLR_RESET " / %d (Max)", customer_get_count(), MAX_CONSUMERS);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_WHITE "Billed Invoices in Memory  :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_CYAN "%d" CLR_RESET " / %d (Max)", billing_get_count(), MAX_BILLS);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "⚡ PERSISTENCE STORAGE FILES" CLR_RESET "                                         " DBOX_V "\n");
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_WHITE "Payment Receipts in Memory :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_CYAN "%d" CLR_RESET " / %d (Max)", payment_get_count(), MAX_PAYMENTS);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "%-24s" CLR_RESET "  " CLR_GREEN "[Binary Datastore]" CLR_RESET "                             " DBOX_V "\n", CONSUMER_DAT);
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "%-24s" CLR_RESET "  " CLR_GREEN "[Binary Datastore]" CLR_RESET "                             " DBOX_V "\n", BILLS_DAT);
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "%-24s" CLR_RESET "  " CLR_GREEN "[Binary Datastore]" CLR_RESET "                             " DBOX_V "\n", PAYMENTS_DAT);
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "data/audit_trail.log    " CLR_RESET "  " CLR_CYAN "[Audit Security Log]" CLR_RESET "                        " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "data/export_consumers.csv" CLR_RESET "  " CLR_YELLOW "[CSV Spreadsheet]" CLR_RESET "                            " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "data/export_bills.csv    " CLR_RESET "  " CLR_YELLOW "[CSV Spreadsheet]" CLR_RESET "                            " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "config/tariffs.cfg       " CLR_RESET "  " CLR_CYAN "[Config Settings]" CLR_RESET "                            " DBOX_V "\n");
+    ui_card_divider(W);
+    ui_card_section(W, "PERSISTENCE STORAGE FILES & VAULT");
 
-    printf("  " DBOX_BL);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
-    printf(DBOX_BR "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "• " CLR_WHITE "%-24s" CLR_RESET, CONSUMER_DAT);
+    ui_card_row(W, left, CLR_GREEN "[Binary Datastore]" CLR_RESET);
+    snprintf(left, sizeof(left), CLR_GRAY "• " CLR_WHITE "%-24s" CLR_RESET, BILLS_DAT);
+    ui_card_row(W, left, CLR_GREEN "[Binary Datastore]" CLR_RESET);
+    snprintf(left, sizeof(left), CLR_GRAY "• " CLR_WHITE "%-24s" CLR_RESET, PAYMENTS_DAT);
+    ui_card_row(W, left, CLR_GREEN "[Binary Datastore]" CLR_RESET);
+    ui_card_row(W, CLR_GRAY "• " CLR_WHITE "data/audit_trail.log" CLR_RESET, CLR_CYAN "[Audit Security Log]" CLR_RESET);
+    ui_card_row(W, CLR_GRAY "• " CLR_WHITE "data/export_consumers.csv" CLR_RESET, CLR_YELLOW "[CSV Spreadsheet]" CLR_RESET);
+    ui_card_row(W, CLR_GRAY "• " CLR_WHITE "data/export_bills.csv" CLR_RESET, CLR_YELLOW "[CSV Spreadsheet]" CLR_RESET);
+    ui_card_row(W, CLR_GRAY "• " CLR_WHITE "config/tariffs.cfg" CLR_RESET, CLR_CYAN "[Config Settings]" CLR_RESET);
+
+    ui_card_end(W);
 
     pause_prompt();
 }

@@ -153,6 +153,9 @@ voltbill pay BILL-1001 1250.00 1
 # 🔍 Query instant consumer ledger balance and meter status
 voltbill status VB-1001
 
+# ⚡ Instant Tariff & What-If Bill Simulator (Units, Category [0-3], Solar Export)
+voltbill calc 300.0 0 40.0
+
 # Display developer info and version
 voltbill --version
 ```
@@ -179,46 +182,62 @@ voltbill --version
   ╰────────────────────────────────────────────────────────────────────────╯
 ```
 
-### 2. Itemized Invoice with 2D Terminal UPI QR Matrix
+### 2. Itemized Pixel-Perfect Invoice Card with 2D Terminal UPI QR Matrix
 ```text
-  ╭──────────────────────────────────────────────────────────────────────────╮
-  │  ⚡ VOLTBILL STATE UTILITY DISTRIBUTION COMPANY                           │
-  │  Tax Invoice & Electricity Ledger  │  Lead Systems Architect: Akshar Miyani│
-  ├──────────────────────────────────────────────────────────────────────────┤
-  │  INVOICE ID: BILL-1001       CYCLE: SEP-2026       DUE: 2026-09-27       │
-  │  CONSUMER  : VB-1001         NAME : Dr. Rajesh Sharma                    │
-  ├──────────────────────────────────────────────────────────────────────────┤
-  │  METER CONSUMPTION SUMMARY:                                              │
-  │  Previous Index :     1610.0 kWh   Gross Consumed  :      380.0 kWh      │
-  │  Current Index  :     1990.0 kWh   Solar Exported  :      180.0 kWh      │
-  │  Power Factor   :       1.00       NET BILLED UNITS:      200.0 kWh      │
-  ├──────────────────────────────────────────────────────────────────────────┤
-  │  PROGRESSIVE SLAB BREAKDOWN:                                             │
-  │  Tier 1 (0-50 kWh)      :     50.0 kWh @ ₹  3.15  ->  ₹        157.50    │
-  │  Tier 2 (51-150 kWh)    :    100.0 kWh @ ₹  4.50  ->  ₹        450.00    │
-  │  Tier 3 (151-300 kWh)   :     50.0 kWh @ ₹  6.20  ->  ₹        310.00    │
-  ├──────────────────────────────────────────────────────────────────────────┤
-  │  FIXED & REGULATORY LEVIES:                                              │
-  │  Sanctioned Load Demand Charge :  ₹        150.00                        │
-  │  Meter Instrument Hire Rent    :  ₹         25.00                        │
-  │  State Electricity Duty (5.0%) :  ₹         53.38                        │
-  │  Regulatory Asset Surcharge    :  ₹         34.87                        │
-  │  Fuel Surcharge (FPPCA)        :  ₹         70.00                        │
-  ├──────────────────────────────────────────────────────────────────────────┤
-  │  NET PAYABLE AMOUNT            :  ₹      1,270.75  (● UNPAID)            │
-  ├──────────────────────────────────────────────────────────────────────────┤
-  │  SCAN TO PAY VIA ANY UPI APP (GPay / PhonePe / Paytm / BHIM):            │
-  │                                                                          │
-  │    ██████████████  ████  ████  ██████████████                            │
-  │    ██          ██  ██      ██  ██          ██                            │
-  │    ██  ██████  ██    ██  ██    ██  ██████  ██                            │
-  │    ██  ██████  ██  ████████    ██  ██████  ██                            │
-  │    ██  ██████  ██    ██        ██  ██████  ██                            │
-  │    ██          ██  ██████  ██  ██          ██                            │
-  │    ██████████████  ██  ██  ██  ██████████████                            │
-  │                    ████  ██                                              │
-  │    UPI ID: voltbill.utility@axisbank                                      │
-  ╰──────────────────────────────────────────────────────────────────────────╯
+  ╔═ [ VOLTBILL STATE UTILITY DISTRIBUTION COMPANY ] ═══════════════════════════╗
+  ║  High-Performance Systems Architecture ◈ Architect: Akshar Miyani          ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  BILL NO: BILL-1001       CYCLE: SEP-2026            DUE DATE: 2026-09-27  ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  CONSUMER SPECIFICATION & GRID NODES                                       ║
+  ║  ID     : VB-1001          Name    : Dr. Rajesh Sharma                     ║
+  ║  Meter  : MTR-98214        Category: Domestic (Residential)                ║
+  ║  Demand : 5.00 kW          Supply  : 1-Phase (230V Standard)               ║
+  ║  Address: 42 Palm Avenue, Cyber City                                       ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  ENERGY CONSUMPTION TELEMETRY                                              ║
+  ║  Previous Index :     1610.0 kWh          Gross Consumed :      380.0 kWh  ║
+  ║  Current Index  :     1990.0 kWh          Solar Exported :      180.0 kWh  ║
+  ║  Power Factor   :       1.00 pf          NET BILLED UNITS:      200.0 kWh  ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  PROGRESSIVE TIER SLAB COMPUTATION                                         ║
+  ║  Tier        Units Charged       Tariff Rate          Subtotal Amount      ║
+  ║  ────────────────────────────────────────────────────────────────────      ║
+  ║  Tier 1            50.0 kWh               @ Rs.   3.15   Rs.       157.50  ║
+  ║  Tier 2           100.0 kWh               @ Rs.   4.50   Rs.       450.00  ║
+  ║  Tier 3            50.0 kWh               @ Rs.   6.20   Rs.       310.00  ║
+  ║  Subtotal Energy Assessment:                             Rs.       917.50  ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  FIXED CHARGES & STATUTORY REGULATORY SURCHARGES                           ║
+  ║  Contract Demand Load Charge (Fixed/Demand) :            Rs.       250.00  ║
+  ║  Meter Rental & Maintenance Fee             :            Rs.        25.00  ║
+  ║  Regulatory Asset Recovery Surcharge        :            Rs.        34.87  ║
+  ║  State Electricity Duty & Statutory Cess    :            Rs.        51.38  ║
+  ║  Clean Energy Environmental Fund Cess       :            Rs.        20.00  ║
+  ║  Fuel Surcharge Price Adjustment (FPPCA)    :            Rs.        70.00  ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  Current Cycle Assessment Total             :            Rs.      1368.75  ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║   NET TOTAL AMOUNT PAYABLE (BY DUE DATE)                Rs.      1368.75   ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  Prompt Payment Discount (Before 2026-09-27)         Pay Rs.      1348.22  ║
+  ║  Late Payment Surcharge  (After 2026-09-27)          Pay Rs.      1396.12  ║
+  ╠════════════════════════════════════════════════════════════════════════════╣
+  ║  INSTANT DIGITAL UPI SETTLEMENT (BHARAT BILLPAY / ANY BANK)                ║
+  ║                     █████████████████████████████████                      ║
+  ║                         ██ ███████ █▀▄ ███████ ██                          ║
+  ║                         ██ █     █ ▄ █ █     █ ██                          ║
+  ║                         ██ █ ███ █ ██▀ █ ███ █ ██                          ║
+  ║                         ██ █ ███ █ ▄▀▄ █ ███ █ ██                          ║
+  ║                         ██ █     █ █▄█ █     █ ██                          ║
+  ║                         ██ ███████ █ █ ███████ ██                          ║
+  ║                         ██         ▀█▄         ██                          ║
+  ║                          ██ ███████ █ ▀▄▀ █▀█  ██                          ║
+  ║                          ██   ▄█▄   █ █ █ ▄▄▄  ██                          ║
+  ║                     █████████████████████████████████                      ║
+  ║         UPI ID: voltbill.utility@axisbank (Scan with any UPI App)          ║
+  ╚════════════════════════════════════════════════════════════════════════════╝
+  Generated by VoltBill Core Engine ◈ Systems Architect: Akshar Miyani
 ```
 
 ---

@@ -23,32 +23,18 @@ void display_onboarding_splash(void) {
     ui_print_gradient("       \\/     \\___/ |_|  \\__| |____/  |_| |_| |_|\n", 0, 240, 255, 189, 0, 255, 1);
     printf("\n");
 
-    printf("  " DBOX_TL);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_TR "\n");
-
-    printf("  " DBOX_V "  ");
-    ui_print_gradient("⚡ VOLTBILL // POWER UTILITY DISTRIBUTION ENGINE", 0, 240, 255, 255, 230, 0, 1);
-    printf("     " CLR_GREEN CLR_BOLD "v2.0.0 ENTERPRISE" CLR_RESET "  " DBOX_V "\n");
-
-    printf("  " DBOX_V "  " CLR_GRAY "Next-Generation Systems Architecture Engineered in Pure ISO C (C99/C11)" CLR_RESET "   " DBOX_V "\n");
-    
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
-
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Lead Systems Architect :" CLR_RESET "  ");
-    ui_print_gradient("AKSHAR MIYANI", 0, 240, 255, 189, 0, 255, 1);
-    printf("                                       " DBOX_V "\n");
-
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Core Engine Runtime     :" CLR_RESET "  " CLR_CYAN "Deterministic Low-Latency POS & Tariff Processor" CLR_RESET "    " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Data Integrity Standard :" CLR_RESET "  " CLR_GREEN "CRC-32 Checksummed Binary Vault & Atomic Persistence" CLR_RESET "   " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Mathematical Tariffs    :" CLR_RESET "  " CLR_YELLOW "Progressive Slab Engine + Time-of-Day (ToD) Surcharges" CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Target Platforms        :" CLR_RESET "  " CLR_VIOLET "Native Windows (x64) • Linux (ELF/deb) • macOS (Universal)" CLR_RESET " " DBOX_V "\n");
-
-    printf("  " DBOX_BL);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_BR "\n\n");
+    const int W = 76;
+    ui_card_begin(W, "VOLTBILL // POWER UTILITY DISTRIBUTION ENGINE");
+    ui_card_row(W, CLR_CYAN CLR_BOLD "ENTERPRISE DISTRIBUTION CORE" CLR_RESET, CLR_GREEN CLR_BOLD "v2.0.0 ENTERPRISE" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "Next-Generation Systems Architecture Engineered in Pure ISO C (C99/C11)" CLR_RESET);
+    ui_card_divider(W);
+    ui_card_row(W, CLR_WHITE CLR_BOLD "Lead Systems Architect :" CLR_RESET, CLR_CYAN CLR_BOLD "AKSHAR MIYANI" CLR_RESET);
+    ui_card_row(W, CLR_WHITE CLR_BOLD "Core Engine Runtime     :" CLR_RESET, CLR_CYAN "Deterministic Low-Latency POS & Tariff Processor" CLR_RESET);
+    ui_card_row(W, CLR_WHITE CLR_BOLD "Data Integrity Standard :" CLR_RESET, CLR_GREEN "CRC-32 Checksummed Binary Vault & Atomic Persistence" CLR_RESET);
+    ui_card_row(W, CLR_WHITE CLR_BOLD "Mathematical Tariffs    :" CLR_RESET, CLR_YELLOW "Progressive Slab Engine + Time-of-Day (ToD)" CLR_RESET);
+    ui_card_row(W, CLR_WHITE CLR_BOLD "Target Platforms        :" CLR_RESET, CLR_VIOLET "Native Windows (x64) • Linux • macOS" CLR_RESET);
+    ui_card_end(W);
+    printf("\n");
 
     /* Futuristic boot diagnostics with microsecond timestamps */
     printf("  " CLR_WHITE CLR_BOLD "SYSTEM DIAGNOSTICS & TELEMETRY INITIALIZATION:" CLR_RESET "\n");
@@ -83,49 +69,23 @@ void display_banner_compact(void) {
 void display_about_screen(void) {
     ui_header("SYSTEM ARCHITECTURE & CREDENTIALS", "VoltBill Core Specification & Technical Whitepaper Summary");
 
-    printf("  " DBOX_TL);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_TR "\n");
-
-    printf("  " DBOX_V "  ");
-    ui_print_gradient("⚡ ARCHITECTURAL SPECIFICATION & LEADERSHIP", 0, 240, 255, 189, 0, 255, 1);
-    printf("                            " DBOX_V "\n");
-
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
-
-    printf("  " DBOX_V "  " CLR_WHITE "Project Engine  :" CLR_RESET "  " CLR_YELLOW "VoltBill: Native Electricity Billing & Customer Management" CLR_RESET "  " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE "Lead Architect  :" CLR_RESET "  ");
-    ui_print_gradient("Akshar Miyani", 0, 240, 255, 189, 0, 255, 1);
-    printf("                                                     " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE "Implementation  :" CLR_RESET "  " CLR_VIOLET "ISO C11 Native Core (Zero Dynamic Fragmentation)" CLR_RESET "            " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE "GitHub Profile  :" CLR_RESET "  " CLR_CYAN "https://github.com/miyaniakshar1234" CLR_RESET "                              " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_WHITE "Repository      :" CLR_RESET "  " CLR_CYAN "https://github.com/miyaniakshar1234/VoltBill" CLR_RESET "                      " DBOX_V "\n");
-
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
-
-    printf("  " DBOX_V "  ");
-    ui_print_gradient("⚡ ENGINEERING PILLARS & PRODUCTION CAPABILITIES", 0, 240, 255, 255, 230, 0, 1);
-    printf("                    " DBOX_V "\n");
-
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
-
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Progressive Tier Slabs: Dynamic boundary traversal with O(1) memory   " CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Solar Net-Metering: Direct bidirectional grid kWh offsetting          " CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Industrial Power Factor: Reactive penalty and high-efficiency rebates " CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Time-of-Day (ToD): Peak-hour stress surcharge and solar rebates       " CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Batch Grid Processing: Simultaneous billing across entire grid nodes  " CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Data Vault: Binary datastores with CRC-32 integrity & atomic renames " CLR_RESET " " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "•" CLR_RESET " " CLR_WHITE "Visual TUI: TrueColor RGB gradients, live HUD & authentic QR matrix   " CLR_RESET " " DBOX_V "\n");
-
-    printf("  " DBOX_BL);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_BR "\n");
+    const int W = 76;
+    ui_card_begin(W, "ARCHITECTURAL SPECIFICATION & LEADERSHIP");
+    ui_card_row(W, CLR_WHITE "Project Engine :" CLR_RESET, CLR_YELLOW "VoltBill: Native Electricity Billing & Customer Management" CLR_RESET);
+    ui_card_row(W, CLR_WHITE "Lead Architect :" CLR_RESET, CLR_CYAN CLR_BOLD "AKSHAR MIYANI" CLR_RESET);
+    ui_card_row(W, CLR_WHITE "Implementation :" CLR_RESET, CLR_VIOLET "ISO C11 Native Core (Zero Dynamic Fragmentation)" CLR_RESET);
+    ui_card_row(W, CLR_WHITE "GitHub Profile :" CLR_RESET, CLR_CYAN "https://github.com/miyaniakshar1234" CLR_RESET);
+    ui_card_row(W, CLR_WHITE "Repository     :" CLR_RESET, CLR_CYAN "https://github.com/miyaniakshar1234/VoltBill" CLR_RESET);
+    ui_card_divider(W);
+    ui_card_section(W, "ENGINEERING PILLARS & PRODUCTION CAPABILITIES");
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Progressive Tier Slabs: Dynamic boundary traversal with O(1) memory" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Solar Net-Metering: Direct bidirectional grid kWh offsetting" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Industrial Power Factor: Reactive penalty and high-efficiency rebates" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Time-of-Day (ToD): Peak-hour stress surcharge and solar rebates" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Batch Grid Processing: Simultaneous billing across entire grid nodes" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Data Vault: Binary datastores with CRC-32 integrity & atomic renames" CLR_RESET);
+    ui_card_text(W, CLR_GRAY "• " CLR_WHITE "Visual TUI: TrueColor RGB gradients, live HUD & authentic QR matrix" CLR_RESET);
+    ui_card_end(W);
 
     pause_prompt();
 }

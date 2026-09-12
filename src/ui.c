@@ -10,6 +10,42 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
+
+int ui_visual_len(const char *s) {
+    if (!s) return 0;
+    int len = 0;
+    const unsigned char *p = (const unsigned char *)s;
+    while (*p) {
+        if (*p == '\033') {
+            p++;
+            if (*p == '[') {
+                p++;
+                while (*p && *p != 'm' && *p != 'H' && *p != 'J' && *p != 'K') {
+                    p++;
+                }
+                if (*p) p++;
+            }
+        } else if (*p < 0x80) {
+            if (*p >= 32 && *p < 127) {
+                len++;
+            }
+            p++;
+        } else if ((*p & 0xF8) == 0xF0) {
+            len += 2;
+            p += 4;
+        } else if ((*p & 0xF0) == 0xE0) {
+            len += 1;
+            p += 3;
+        } else if ((*p & 0xE0) == 0xC0) {
+            len += 1;
+            p += 2;
+        } else {
+            p++;
+        }
+    }
+    return len;
+}
 
 void ui_print_gradient(const char *text, int r1, int g1, int b1, int r2, int g2, int b2, int bold) {
     if (!text) return;
@@ -54,41 +90,124 @@ void ui_header(const char *title, const char *subtitle) {
     printf(CLR_RESET "\n\n");
 }
 
-void ui_box_top(int width, const char *title) {
+void ui_card_begin(int width, const char *title) {
+    if (width <= 10) width = 76;
     printf("  " DBOX_TL);
     if (title && title[0] != '\0') {
+        int t_len = ui_visual_len(title);
+        int rem = width - (t_len + 6);
+        if (rem < 0) rem = 0;
         printf(DBOX_H " [ ");
         ui_print_gradient(title, 0, 240, 255, 255, 230, 0, 1);
         printf(" ] ");
-        int title_len = (int)strlen(title) + 6;
-        for (int i = 0; i < width - title_len; i++) printf(DBOX_H);
+        for (int i = 0; i < rem; i++) printf(DBOX_H);
     } else {
         for (int i = 0; i < width; i++) printf(DBOX_H);
     }
     printf(DBOX_TR "\n");
 }
 
-void ui_box_row(int width, const char *label, const char *value) {
-    int label_len = label ? (int)strlen(label) : 0;
-    int val_len = value ? (int)strlen(value) : 0;
-    int pad = width - (label_len + val_len + 4);
+void ui_card_text(int width, const char *fmt, ...) {
+    if (width <= 10) width = 76;
+    char buffer[2048];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+
+    int vis = ui_visual_len(buffer);
+    int pad = width - 2 - vis;
     if (pad < 0) pad = 0;
 
-    printf("  " DBOX_V "  " CLR_WHITE "%s" CLR_RESET, label ? label : "");
-    for (int i = 0; i < pad; i++) printf(" ");
-    printf(CLR_YELLOW CLR_BOLD "%s" CLR_RESET "  " DBOX_V "\n", value ? value : "");
+    printf("  " DBOX_V "  %s%*s" DBOX_V "\n", buffer, pad, "");
 }
 
-void ui_box_divider(int width) {
+void ui_card_row(int width, const char *left_text, const char *right_text) {
+    if (width <= 10) width = 76;
+    const char *l = left_text ? left_text : "";
+    const char *r = right_text ? right_text : "";
+
+    int l_vis = ui_visual_len(l);
+    int r_vis = ui_visual_len(r);
+
+    int pad = width - 4 - l_vis - r_vis;
+    if (pad < 0) pad = 0;
+
+    printf("  " DBOX_V "  %s%*s%s  " DBOX_V "\n", l, pad, "", r);
+}
+
+void ui_card_section(int width, const char *title) {
+    if (width <= 10) width = 76;
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), CLR_CYAN CLR_BOLD "%s" CLR_RESET, title ? title : "");
+    ui_card_text(width, buffer);
+}
+
+void ui_card_divider(int width) {
+    if (width <= 10) width = 76;
     printf("  " DBOX_T_RIGHT);
     for (int i = 0; i < width; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 }
 
-void ui_box_bottom(int width) {
+void ui_card_end(int width) {
+    if (width <= 10) width = 76;
     printf("  " DBOX_BL);
     for (int i = 0; i < width; i++) printf(DBOX_H);
     printf(DBOX_BR "\n");
+}
+
+void ui_card_qr(int width, const char *payload) {
+    if (width <= 10) width = 76;
+
+    const char *qr_lines[] = {
+        CLR_WHITE "█████████████████████████████████" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " " CLR_CYAN "█▀▄" CLR_WHITE " " CLR_DARK_GRAY "███████" CLR_WHITE " ██" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "▄ █" CLR_WHITE " " CLR_DARK_GRAY "█     █" CLR_WHITE " ██" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "██▀" CLR_WHITE " " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " ██" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "▄▀▄" CLR_WHITE " " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " ██" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "█▄█" CLR_WHITE " " CLR_DARK_GRAY "█     █" CLR_WHITE " ██" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " █ █ " CLR_DARK_GRAY "███████" CLR_WHITE " ██" CLR_RESET,
+        CLR_WHITE "██         ▀█▄         ██" CLR_RESET,
+        CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_CYAN " " CLR_WHITE "█ " CLR_YELLOW "▀▄▀" CLR_WHITE " " CLR_GREEN "█▀█" CLR_WHITE "  ██" CLR_RESET,
+        CLR_WHITE "██   " CLR_CYAN "▄█▄" CLR_WHITE "   █ " CLR_YELLOW "█ █" CLR_WHITE " " CLR_GREEN "▄▄▄" CLR_WHITE "  ██" CLR_RESET,
+        CLR_WHITE "█████████████████████████████████" CLR_RESET
+    };
+    int num_lines = sizeof(qr_lines) / sizeof(qr_lines[0]);
+
+    for (int i = 0; i < num_lines; i++) {
+        int vis = ui_visual_len(qr_lines[i]);
+        int left_pad = (width - vis) / 2;
+        int right_pad = width - left_pad - vis;
+        if (left_pad < 0) left_pad = 0;
+        if (right_pad < 0) right_pad = 0;
+        printf("  " DBOX_V "%*s%s%*s" DBOX_V "\n", left_pad, "", qr_lines[i], right_pad, "");
+    }
+
+    char upi_label[128];
+    snprintf(upi_label, sizeof(upi_label), CLR_CYAN "UPI ID: voltbill.utility@axisbank" CLR_RESET " " CLR_DIM "(Scan with any UPI App)" CLR_RESET);
+    int u_vis = ui_visual_len(upi_label);
+    int u_lpad = (width - u_vis) / 2;
+    int u_rpad = width - u_lpad - u_vis;
+    if (u_lpad < 0) u_lpad = 0;
+    if (u_rpad < 0) u_rpad = 0;
+    printf("  " DBOX_V "%*s%s%*s" DBOX_V "\n", u_lpad, "", upi_label, u_rpad, "");
+}
+
+void ui_box_top(int width, const char *title) {
+    ui_card_begin(width, title);
+}
+
+void ui_box_row(int width, const char *label, const char *value) {
+    ui_card_row(width, label, value);
+}
+
+void ui_box_divider(int width) {
+    ui_card_divider(width);
+}
+
+void ui_box_bottom(int width) {
+    ui_card_end(width);
 }
 
 void ui_status_bar(const char *left_text, const char *right_text) {

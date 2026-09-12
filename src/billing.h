@@ -61,6 +61,16 @@ void billing_calculate(const Consumer *c, double prev_reading, double curr_readi
                        double solar_units, double peak_units, double power_factor, BillBreakdown *out_bill);
 
 /**
+ * @brief Interactive Tariff & Bill Simulator (What-if calculator without registering a consumer).
+ */
+void billing_simulator_flow(void);
+
+/**
+ * @brief Instant CLI tariff calculation (e.g. voltbill calc 250).
+ */
+void billing_quick_calc(double units, int category_idx, double solar_units);
+
+/**
  * @brief Displays a lavish terminal invoice for a bill.
  */
 void billing_render_invoice(const BillBreakdown *b, const Consumer *c);

@@ -75,65 +75,79 @@ static void generate_next_consumer_id(char *dest, size_t max_len) {
 void customer_render_card(const Consumer *c) {
     if (!c) return;
 
-    printf("  " DBOX_TL);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_TR "\n");
+    const int W = 76;
+    char left[160], right[160], full[256];
 
-    printf("  " DBOX_V "  ");
-    ui_print_gradient(c->id, 0, 240, 255, 189, 0, 255, 1);
-    printf("  " CLR_WHITE CLR_BOLD "%-44.44s" CLR_RESET " ", c->name);
+    ui_card_begin(W, "CONSUMER PROFILE & GRID NODE RECORD");
+
+    /* Header Row */
+    snprintf(left, sizeof(left), CLR_CYAN CLR_BOLD "%s" CLR_RESET "  " CLR_WHITE CLR_BOLD "%-36.36s" CLR_RESET, c->id, c->name);
     if (c->is_active) {
         if (c->is_flagged_for_disconnection) {
-            ui_pill_badge("NOTICE SERVED", CLR_YELLOW);
-            printf(" " DBOX_V "\n");
+            snprintf(right, sizeof(right), CLR_YELLOW "(▲ NOTICE SERVED)" CLR_RESET);
         } else {
-            ui_pill_badge("ACTIVE NODE", CLR_GREEN);
-            printf("   " DBOX_V "\n");
+            snprintf(right, sizeof(right), CLR_GREEN "(● ACTIVE NODE)" CLR_RESET);
         }
     } else {
-        ui_pill_badge("DISCONNECTED", CLR_RED);
-        printf("  " DBOX_V "\n");
+        snprintf(right, sizeof(right), CLR_RED "(■ DISCONNECTED)" CLR_RESET);
     }
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    ui_card_divider(W);
 
-    printf("  " DBOX_V "  " CLR_GRAY "Tariff Class:" CLR_RESET " %-22s  " CLR_GRAY "Meter Number :" CLR_RESET " %-21s " DBOX_V "\n",
-           category_to_string(c->category), c->meter_no);
-    printf("  " DBOX_V "  " CLR_GRAY "Phase Supply:" CLR_RESET " %-22s  " CLR_GRAY "Contract Load:" CLR_RESET " %5.2f kW             " DBOX_V "\n",
-           c->phase == PHASE_THREE ? "Three Phase (415V)" : "Single Phase (230V)", c->sanctioned_load_kw);
-    printf("  " DBOX_V "  " CLR_GRAY "Phone Contact:" CLR_RESET " %-21s  " CLR_GRAY "Solar Rooftop:" CLR_RESET " %5.2f kW             " DBOX_V "\n",
-           c->phone, c->solar_capacity_kw);
-    printf("  " DBOX_V "  " CLR_GRAY "Email ID    :" CLR_RESET " %-22s  " CLR_GRAY "Registered   :" CLR_RESET " %-21s " DBOX_V "\n",
-           c->email, c->registered_date);
-    printf("  " DBOX_V "  " CLR_GRAY "Address     :" CLR_RESET " %-59.59s " DBOX_V "\n",
-           c->address);
+    snprintf(left, sizeof(left), CLR_GRAY "Tariff Class : " CLR_WHITE "%-20s" CLR_RESET, category_to_string(c->category));
+    snprintf(right, sizeof(right), CLR_GRAY "Meter Serial : " CLR_WHITE "%-20s" CLR_RESET, c->meter_no);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Phase Supply : " CLR_WHITE "%-20s" CLR_RESET, c->phase == PHASE_THREE ? "3-Phase (415V)" : "1-Phase (230V)");
+    snprintf(right, sizeof(right), CLR_GRAY "Contract Load: " CLR_YELLOW "%.2f kW" CLR_RESET, c->sanctioned_load_kw);
+    ui_card_row(W, left, right);
 
-    /* Visual Load Capacity Gauge */
-    printf("  " DBOX_V "  " CLR_GRAY "Demand Load Gauge: " CLR_RESET);
-    ui_gauge_bar(c->sanctioned_load_kw, 100.0, 24, "kW");
-    printf("   " DBOX_V "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Phone Contact: " CLR_WHITE "%-20s" CLR_RESET, c->phone);
+    snprintf(right, sizeof(right), CLR_GRAY "Solar Rooftop: " CLR_GREEN "%.2f kW" CLR_RESET, c->solar_capacity_kw);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Email Address: " CLR_WHITE "%-20s" CLR_RESET, c->email);
+    snprintf(right, sizeof(right), CLR_GRAY "Registration : " CLR_WHITE "%-20s" CLR_RESET, c->registered_date);
+    ui_card_row(W, left, right);
+
+    snprintf(full, sizeof(full), CLR_GRAY "Address      : " CLR_WHITE "%-58.58s" CLR_RESET, c->address);
+    ui_card_text(W, full);
+
+    ui_card_divider(W);
+
+    /* Demand Load Gauge */
+    char gauge_str[128];
+    double ratio = c->sanctioned_load_kw / 50.0;
+    if (ratio > 1.0) ratio = 1.0;
+    int filled = (int)(ratio * 20.0);
+    int pos = 0;
+    pos += snprintf(gauge_str + pos, sizeof(gauge_str) - pos, "[");
+    pos += snprintf(gauge_str + pos, sizeof(gauge_str) - pos, "%s", ratio > 0.85 ? CLR_RED : (ratio > 0.6 ? CLR_YELLOW : CLR_GREEN));
+    for (int i = 0; i < filled && pos < (int)sizeof(gauge_str) - 8; i++) {
+        pos += snprintf(gauge_str + pos, sizeof(gauge_str) - pos, "▰");
+    }
+    pos += snprintf(gauge_str + pos, sizeof(gauge_str) - pos, "%s", CLR_DARK_GRAY);
+    for (int i = filled; i < 20 && pos < (int)sizeof(gauge_str) - 8; i++) {
+        pos += snprintf(gauge_str + pos, sizeof(gauge_str) - pos, "▱");
+    }
+    pos += snprintf(gauge_str + pos, sizeof(gauge_str) - pos, "%s] %5.1f%% (%.1f / 50.0 kW)", CLR_RESET, ratio * 100.0, c->sanctioned_load_kw);
+
+    snprintf(left, sizeof(left), CLR_GRAY "Contract Demand Load Gauge:" CLR_RESET);
+    ui_card_row(W, left, gauge_str);
+
+    ui_card_divider(W);
 
     char bal_str[32], cred_str[32];
     format_currency(c->outstanding_arrears, bal_str, sizeof(bal_str));
     format_currency(c->advance_credit, cred_str, sizeof(cred_str));
 
-    printf("  " DBOX_V "  " CLR_GRAY "Unpaid Arrears :" CLR_RESET " " CLR_RED "%-18s" CLR_RESET "  " 
-           CLR_GRAY "Advance Balance:" CLR_RESET " " CLR_GREEN "%-18s" CLR_RESET "   " DBOX_V "\n",
-           bal_str, cred_str);
+    snprintf(left, sizeof(left), CLR_GRAY "Unpaid Arrears : " CLR_RED CLR_BOLD "%-16s" CLR_RESET, bal_str);
+    snprintf(right, sizeof(right), CLR_GRAY "Advance Credit : " CLR_GREEN CLR_BOLD "%-16s" CLR_RESET, cred_str);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_BL);
-    for (int i = 0; i < 76; i++) printf(DBOX_H);
-    printf(DBOX_BR "\n\n");
+    ui_card_end(W);
+    printf("\n");
 }
 
 void customer_quick_status(const char *consumer_id) {
@@ -426,16 +440,18 @@ void customer_defaulters_flow(void) {
            CLR_WHITE CLR_BOLD "%-24s" CLR_RESET CLR_GRAY "│ " 
            CLR_RED CLR_BOLD "%-14s" CLR_RESET CLR_GRAY "│ " 
            CLR_YELLOW CLR_BOLD "%-16s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
-           "ID", "Consumer Name", "Arrears (₹)", "Notice Status");
+           "ID", "Consumer Name", "Arrears (Rs.)", "Notice Status");
     printf("  " CLR_GRAY "├──────────┼──────────────────────────┼────────────────┼──────────────────┤" CLR_RESET "\n");
 
     for (int i = 0; i < defaulter_count; i++) {
         Consumer *d = defaulters[i];
+        char amt_str[32];
+        snprintf(amt_str, sizeof(amt_str), "Rs. %10.2f", d->outstanding_arrears);
         printf("  " CLR_GRAY "│ " CLR_CYAN "%-8s" CLR_RESET CLR_GRAY "│ " 
                CLR_WHITE "%-24.24s" CLR_RESET CLR_GRAY "│ " 
-               CLR_RED "₹ %12.2f" CLR_RESET CLR_GRAY "│ " 
+               CLR_RED "%-14s" CLR_RESET CLR_GRAY "│ " 
                CLR_YELLOW "%-16s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
-               d->id, d->name, d->outstanding_arrears,
+               d->id, d->name, amt_str,
                d->is_flagged_for_disconnection ? "Notice Served" : "Pending Action");
     }
     printf("  " CLR_GRAY "└──────────┴──────────────────────────┴────────────────┴──────────────────┘" CLR_RESET "\n\n");

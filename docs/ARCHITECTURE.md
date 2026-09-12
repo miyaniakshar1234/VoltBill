@@ -175,8 +175,35 @@ Rendered to the terminal using the ANSI 24-bit TrueColor escape sequence:
 \033[38;2;<R>;<G>;<B>m
 ```
 
-### 5.2 2D Matrix Symbology (UPI QR Generator)
-Rather than requiring an external image viewer, VoltBill embeds a native 2D matrix synthesizer directly into the terminal output. It renders a 29×29 QR matrix with quiet zones, finder patterns at \((0,0), (0,22), (22,0)\), timing tracks, and simulated error correction alignment patterns using full Unicode block glyphs (`██` and `  `).
+### 5.2 Pixel-Perfect Card Engine & UTF-8 Visual Length Calculus
+
+Terminal cell alignment is notoriously broken in standard CLI tools because naive `strlen()` counts raw bytes rather than glyph display cells. In an internationalized TrueColor environment, three factors distort terminal width:
+1. **ANSI Escape Sequences:** Sequences such as `\033[38;2;R;G;Bm` consume 19–25 bytes in memory but occupy exactly **0 terminal cells**.
+2. **Multi-byte UTF-8 Glyphs:** Currency symbols (`₹` = 3 bytes), power bolts (`⚡` = 3 bytes), and box characters (`║` = 3 bytes) occupy **1 terminal cell**.
+3. **Double-width Emojis:** Emoji symbols (`🌱`, `📊`, `💡`, `🏢`) occupy 4 bytes in UTF-8 and **2 terminal display cells**.
+
+VoltBill implements a deterministic, zero-allocation visual length analyzer (`ui_visual_len(const char *s)`):
+
+\[
+W_{\text{visible}}(s) = \sum_{c \in \text{tokens}(s)} 
+\begin{cases} 
+0 & \text{if } c \text{ is an ANSI escape sequence } (\texttt{\textbackslash 033[...m}) \\
+2 & \text{if } c \ge \text{U+10000} \text{ (4-byte UTF-8 emoji)} \\
+1 & \text{if } c \in \text{ASCII } [32, 126] \lor c \in \text{2-byte/3-byte UTF-8} \\
+0 & \text{otherwise (control codes)}
+\end{cases}
+\]
+
+Every card row emitted through `ui_card_row()` and `ui_card_text()` computes dynamic padding:
+
+\[
+\Delta_{\text{pad}} = W_{\text{inner}} - W_{\text{visible}}(\text{content})
+\]
+
+Emitting exact spaces before rendering the right border `║`, guaranteeing mathematically perfect vertical column alignment across all DEC VT100 / xterm / Windows Terminal sessions.
+
+### 5.3 2D Matrix Symbology (UPI QR Generator)
+Rather than requiring an external image viewer, VoltBill embeds a native 2D matrix synthesizer directly into the terminal output. It renders a 29×29 QR matrix with quiet zones, finder patterns at \((0,0), (0,22), (22,0)\), timing tracks, and simulated error correction alignment patterns using full Unicode block glyphs (`██` and `  `). The QR matrix is dynamically centered within the card frame via `ui_card_qr()`, ensuring complete aesthetic enclosure.
 
 ---
 

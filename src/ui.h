@@ -77,6 +77,46 @@ void ui_telemetry_hud(void);
 void ui_header(const char *title, const char *subtitle);
 
 /**
+ * @brief Calculates visual column width of a UTF-8 string, stripping ANSI escapes.
+ */
+int ui_visual_len(const char *s);
+
+/**
+ * @brief Begins a double-line card with width (e.g. 76) and optional radiant gradient title.
+ */
+void ui_card_begin(int width, const char *title);
+
+/**
+ * @brief Formats and prints a line inside a card with exact padding to align the right border.
+ */
+void ui_card_text(int width, const char *fmt, ...);
+
+/**
+ * @brief Formats and prints a two-column row (left and right text) inside a card.
+ */
+void ui_card_row(int width, const char *left_text, const char *right_text);
+
+/**
+ * @brief Prints an itemized section header inside a card.
+ */
+void ui_card_section(int width, const char *title);
+
+/**
+ * @brief Prints a horizontal card divider line.
+ */
+void ui_card_divider(int width);
+
+/**
+ * @brief Closes a double-line card with the bottom border.
+ */
+void ui_card_end(int width);
+
+/**
+ * @brief Renders the 2D UPI QR Matrix centered inside the card with side borders.
+ */
+void ui_card_qr(int width, const char *payload);
+
+/**
  * @brief Draws a cyber double-bordered card top.
  */
 void ui_box_top(int width, const char *title);

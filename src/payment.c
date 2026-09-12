@@ -54,48 +54,62 @@ static const char *payment_mode_str(PaymentMode mode) {
 void payment_render_receipt(const PaymentRecord *p, const Consumer *c, double remaining_balance) {
     if (!p || !c) return;
 
+    const int W = 76;
+    char left[160], right[160];
+
     printf("\n");
-    printf("  " DBOX_TL);
-    for (int i = 0; i < 70; i++) printf(DBOX_H);
-    printf(DBOX_TR "\n");
+    ui_card_begin(W, "VOLTBILL OFFICIAL PAYMENT RECEIPT");
 
-    printf("  " DBOX_V "  " CLR_GREEN CLR_BOLD "VOLTBILL OFFICIAL PAYMENT RECEIPT" CLR_RESET "                                " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "Payment Settlement Verification Ledger • VoltBill Utility Engine" CLR_RESET "     " DBOX_V "\n");
+    ui_card_text(W, CLR_GRAY "Payment Settlement Verification Ledger ◈ VoltBill Utility Engine" CLR_RESET);
+    ui_card_divider(W);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 70; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_WHITE "Receipt Number  :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_CYAN CLR_BOLD "%s" CLR_RESET, p->receipt_id);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_V "  " CLR_WHITE "Receipt Number  :" CLR_RESET " " CLR_CYAN CLR_BOLD "%-48s" CLR_RESET " " DBOX_V "\n", p->receipt_id);
-    printf("  " DBOX_V "  " CLR_WHITE "Associated Bill :" CLR_RESET " %-48s " DBOX_V "\n", p->bill_id);
-    printf("  " DBOX_V "  " CLR_WHITE "Consumer ID     :" CLR_RESET " %-48s " DBOX_V "\n", c->id);
-    printf("  " DBOX_V "  " CLR_WHITE "Consumer Name   :" CLR_RESET " %-48.48s " DBOX_V "\n", c->name);
-    printf("  " DBOX_V "  " CLR_WHITE "Payment Mode    :" CLR_RESET " %-48s " DBOX_V "\n", payment_mode_str(p->mode));
-    printf("  " DBOX_V "  " CLR_WHITE "Transaction Ref :" CLR_RESET " %-48s " DBOX_V "\n", p->transaction_ref);
-    printf("  " DBOX_V "  " CLR_WHITE "Date & Time     :" CLR_RESET " %-48s " DBOX_V "\n", p->payment_date);
+    snprintf(left, sizeof(left), CLR_WHITE "Associated Bill :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%s" CLR_RESET, p->bill_id);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 70; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_WHITE "Consumer ID     :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%s" CLR_RESET, c->id);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "Consumer Name   :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%-36.36s" CLR_RESET, c->name);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "Payment Channel :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_YELLOW "%s" CLR_RESET, payment_mode_str(p->mode));
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "Transaction Ref :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%s" CLR_RESET, p->transaction_ref);
+    ui_card_row(W, left, right);
+
+    snprintf(left, sizeof(left), CLR_WHITE "Payment Date    :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_WHITE "%s" CLR_RESET, p->payment_date);
+    ui_card_row(W, left, right);
+
+    ui_card_divider(W);
 
     char amt_str[32], bal_str[32];
     format_currency(p->amount, amt_str, sizeof(amt_str));
     format_currency(remaining_balance, bal_str, sizeof(bal_str));
 
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "AMOUNT RECEIVED :" CLR_RESET " " 
-           CLR_GREEN CLR_BOLD "%-48s" CLR_RESET " " DBOX_V "\n", amt_str);
-    printf("  " DBOX_V "  " CLR_GRAY "Outstanding Balance Remaining : %-37s" CLR_RESET " " DBOX_V "\n", bal_str);
+    snprintf(left, sizeof(left), CLR_WHITE CLR_BOLD "AMOUNT RECEIVED :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_GREEN CLR_BOLD "%s" CLR_RESET, amt_str);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 70; i++) printf(DBOX_H);
-    printf(DBOX_T_LEFT "\n");
+    snprintf(left, sizeof(left), CLR_GRAY "Outstanding Balance Remaining :" CLR_RESET);
+    snprintf(right, sizeof(right), CLR_YELLOW "%s" CLR_RESET, bal_str);
+    ui_card_row(W, left, right);
 
-    printf("  " DBOX_V "  " CLR_GREEN "STATUS: TRANSACTION VERIFIED & SETTLED IN UTILITY LEDGER" CLR_RESET "           " DBOX_V "\n");
+    ui_card_divider(W);
 
-    printf("  " DBOX_BL);
-    for (int i = 0; i < 70; i++) printf(DBOX_H);
-    printf(DBOX_BR "\n");
+    ui_card_row(W, CLR_GREEN "STATUS: TRANSACTION VERIFIED & SETTLED IN UTILITY LEDGER" CLR_RESET, CLR_GREEN "✓ OK" CLR_RESET);
 
+    ui_card_end(W);
     printf("  " CLR_GRAY "Engineered by Akshar Miyani" CLR_RESET "\n\n");
 }
 
@@ -282,7 +296,7 @@ void payment_list_all(void) {
            CLR_WHITE CLR_BOLD "%-20s" CLR_RESET CLR_GRAY "│ " 
            CLR_GREEN CLR_BOLD "%-11s" CLR_RESET CLR_GRAY "│ " 
            CLR_VIOLET CLR_BOLD "%-11s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
-           "Receipt ID", "Bill ID", "Consumer", "Timestamp", "Amount (₹)", "Mode");
+           "Receipt ID", "Bill ID", "Consumer", "Timestamp", "Amount (Rs)", "Mode");
     printf("  " CLR_GRAY "├──────────────┼──────────────┼────────────┼──────────────────────┼─────────────┼─────────────┤" CLR_RESET "\n");
 
     for (int i = 0; i < g_payment_count; i++) {
