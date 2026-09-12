@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "description": "VoltBill: A Console-Based Electricity Billing and Customer Management System Using C",
+  "homepage": "https://github.com/miyaniakshar1234/VoltBill",
+  "license": "MIT",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/miyaniakshar1234/VoltBill/releases/download/v1.0.0/voltbill-windows-x64.zip",
+      "bin": "voltbill.exe"
+    }
+  },
+  "notes": "VoltBill engineered by Akshar Miyani (MCA 1st Sem, Manipal University Jaipur)."
+}

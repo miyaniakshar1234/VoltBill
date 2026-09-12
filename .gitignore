@@ -1,0 +1,39 @@
+# Binaries and object files
+bin/
+build/
+*.exe
+*.obj
+*.o
+*.out
+*.dll
+*.so
+*.dylib
+
+# Data files and generated reports
+data/*.dat
+data/bills/*.txt
+data/export_*.csv
+
+# CMake artifacts
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+_CPack_Packages/
+Makefile.in
+
+# Visual Studio & IDE files
+.vs/
+*.sln
+*.vcxproj
+*.user
+*.pdb
+*.ilk
+.vscode/
+.idea/
+
+# Archives
+*.zip
+*.tar.gz
+*.deb

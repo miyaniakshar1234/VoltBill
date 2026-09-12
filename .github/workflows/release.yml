@@ -1,0 +1,57 @@
+name: Multi-Platform Release Packager
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: windows-x64
+            artifact: voltbill-windows-x64.zip
+            binary: voltbill.exe
+          - os: ubuntu-latest
+            target: linux-x64
+            artifact: voltbill-linux-x64.tar.gz
+            binary: voltbill
+          - os: macos-latest
+            target: macos-universal
+            artifact: voltbill-macos-universal.tar.gz
+            binary: voltbill
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build Binary
+      run: cmake --build build --config Release
+
+    - name: Package Windows Binary
+      if: runner.os == 'Windows'
+      run: |
+        Compress-Archive -Path build\Release\voltbill.exe, config\tariffs.cfg, LICENSE, README.md -DestinationPath ${{ matrix.artifact }}
+
+    - name: Package Unix Binary
+      if: runner.os != 'Windows'
+      run: |
+        tar -czvf ${{ matrix.artifact }} -C build voltbill LICENSE README.md
+
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ${{ matrix.artifact }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
