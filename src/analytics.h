@@ -25,6 +25,11 @@ void analytics_consumer_deepdive(void);
 void analytics_draw_barchart(const double *values, const char **labels, int count, double max_val);
 
 /**
+ * @brief Renders an inline Unicode sparkline waveform for historical data series.
+ */
+void analytics_draw_sparkline(const double *values, int count);
+
+/**
  * @brief Computes environmental carbon footprint metrics for a given kWh consumption.
  */
 void analytics_print_carbon_footprint(double total_kwh, double solar_kwh);

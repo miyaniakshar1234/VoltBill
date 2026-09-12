@@ -188,10 +188,10 @@ static void menu_storage_tools(void) {
 }
 
 static void print_version(void) {
-    printf("VoltBill v1.1.0\n");
-    printf("Lead Architect & Developer : Akshar Miyani\n");
-    printf("Platform                   : Native Systems Core (ISO C11)\n");
-    printf("Repository                 : https://github.com/miyaniakshar1234/VoltBill\n");
+    printf("VoltBill v2.0.0 (Cyber-Volt Enterprise Edition)\n");
+    printf("Lead Systems Architect : Akshar Miyani\n");
+    printf("Platform               : Native High-Performance Systems Core (ISO C11)\n");
+    printf("Repository             : https://github.com/miyaniakshar1234/VoltBill\n");
 }
 
 static void print_help(void) {

@@ -1,11 +1,11 @@
 {
-  "version": "1.1.0",
-  "description": "VoltBill: A Console-Based Electricity Billing and Customer Management System Using C",
+  "version": "2.0.0",
+  "description": "VoltBill: High-Performance Utility Distribution & Grid Analytics Engine in Native C",
   "homepage": "https://github.com/miyaniakshar1234/VoltBill",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/miyaniakshar1234/VoltBill/releases/download/v1.1.0/voltbill-windows-x64.zip",
+      "url": "https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.0.0/voltbill-windows-x64.zip",
       "bin": "voltbill.exe"
     }
   },

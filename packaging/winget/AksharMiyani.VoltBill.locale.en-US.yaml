@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
 PackageIdentifier: AksharMiyani.VoltBill
-PackageVersion: 1.1.0
+PackageVersion: 2.0.0
 PackageLocale: en-US
 Publisher: Akshar Miyani
 PublisherUrl: https://github.com/miyaniakshar1234

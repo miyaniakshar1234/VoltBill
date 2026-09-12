@@ -2,6 +2,7 @@
  * @file billing.c
  * @brief Implementation of meter reading, slab engine, and invoice rendering.
  * @author Akshar Miyani
+ * @version 2.0.0
  */
 
 #include "billing.h"
@@ -192,132 +193,138 @@ void billing_render_invoice(const BillBreakdown *b, const Consumer *c) {
 
     printf("\n");
     printf("  " DBOX_TL);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_TR "\n");
 
-    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "VOLTBILL STATE UTILITY DISTRIBUTION COMPANY" CLR_RESET "                  " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "High-Performance Utility Systems Architecture Engine" CLR_RESET "                " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_VIOLET "Lead Architect: Akshar Miyani" CLR_RESET "                                       " DBOX_V "\n");
+    printf("  " DBOX_V "  ");
+    ui_print_gradient("⚡ VOLTBILL STATE POWER & UTILITY CORP // TAX INVOICE", 0, 240, 255, 189, 0, 255, 1);
+    printf("     " DBOX_V "\n");
+
+    printf("  " DBOX_V "  " CLR_GRAY "High-Performance Systems Architecture Engine ◈ Lead Architect: " CLR_RESET);
+    ui_print_gradient("Akshar Miyani", 0, 240, 255, 255, 230, 0, 1);
+    printf(" " DBOX_V "\n");
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
-    printf("  " DBOX_V "  " CLR_YELLOW CLR_BOLD "TAX INVOICE / ELECTRICITY BILL" CLR_RESET "         " 
-           CLR_WHITE "Bill No:" CLR_RESET " " CLR_CYAN CLR_BOLD "%-16s" CLR_RESET "      " DBOX_V "\n", b->bill_id);
-    printf("  " DBOX_V "  " CLR_GRAY "Billing Cycle: %-12s  Bill Date: %-10s  Due Date: %-10s" CLR_RESET " " DBOX_V "\n",
-           b->billing_cycle, b->bill_date, b->due_date);
+    printf("  " DBOX_V "  " CLR_YELLOW CLR_BOLD "BILL NO: %-18s" CLR_RESET "  " 
+           CLR_WHITE "CYCLE: " CLR_CYAN "%-10s" CLR_RESET "  " 
+           CLR_WHITE "DUE: " CLR_RED CLR_BOLD "%-12s" CLR_RESET "   " DBOX_V "\n",
+           b->bill_id, b->billing_cycle, b->due_date);
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
     /* Consumer Info */
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "CONSUMER DETAILS:" CLR_RESET "                                                   " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "ID     :" CLR_RESET " " CLR_CYAN "%-12s" CLR_RESET "  " 
-           CLR_GRAY "Name    :" CLR_RESET " " CLR_WHITE "%-38.38s" CLR_RESET " " DBOX_V "\n", c->id, c->name);
+    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "CONSUMER SPECIFICATION & GRID NODES:" CLR_RESET "                                    " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_GRAY "ID     :" CLR_RESET " " CLR_WHITE CLR_BOLD "%-12s" CLR_RESET "  " 
+           CLR_GRAY "Name    :" CLR_RESET " " CLR_WHITE "%-40.40s" CLR_RESET " " DBOX_V "\n", c->id, c->name);
     printf("  " DBOX_V "  " CLR_GRAY "Meter  :" CLR_RESET " %-12s  " 
-           CLR_GRAY "Category:" CLR_RESET " %-38s " DBOX_V "\n", c->meter_no, category_to_string(c->category));
-    printf("  " DBOX_V "  " CLR_GRAY "Load   :" CLR_RESET " %-5.2f kW        " 
-           CLR_GRAY "Supply  :" CLR_RESET " %-38s " DBOX_V "\n", 
-           c->sanctioned_load_kw, c->phase == PHASE_THREE ? "3-Phase (415V)" : "1-Phase (230V)");
-    printf("  " DBOX_V "  " CLR_GRAY "Address:" CLR_RESET " %-61.61s " DBOX_V "\n", c->address);
+           CLR_GRAY "Category:" CLR_RESET " %-40s " DBOX_V "\n", c->meter_no, category_to_string(c->category));
+    printf("  " DBOX_V "  " CLR_GRAY "Demand :" CLR_RESET " %-5.2f kW        " 
+           CLR_GRAY "Supply  :" CLR_RESET " %-40s " DBOX_V "\n", 
+           c->sanctioned_load_kw, c->phase == PHASE_THREE ? "3-Phase (415V Heavy Grid)" : "1-Phase (230V Standard)");
+    printf("  " DBOX_V "  " CLR_GRAY "Address:" CLR_RESET " %-63.63s " DBOX_V "\n", c->address);
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
-    /* Meter Readings */
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "METER CONSUMPTION SUMMARY:" CLR_RESET "                                         " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "Previous Index :" CLR_RESET " %10.1f kWh   " 
-           CLR_GRAY "Gross Consumed  :" CLR_RESET " %10.1f kWh   " DBOX_V "\n", b->prev_reading, b->gross_units);
-    printf("  " DBOX_V "  " CLR_GRAY "Current Index  :" CLR_RESET " %10.1f kWh   " 
-           CLR_GRAY "Solar Exported  :" CLR_RESET " %10.1f kWh   " DBOX_V "\n", b->curr_reading, b->solar_units);
-    printf("  " DBOX_V "  " CLR_GRAY "Power Factor   :" CLR_RESET " %10.2f       " 
-           CLR_GRAY "NET BILLED UNITS:" CLR_RESET " " CLR_GREEN CLR_BOLD "%10.1f kWh" CLR_RESET "   " DBOX_V "\n",
+    /* Meter Readings & Gauges */
+    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "ENERGY CONSUMPTION TELEMETRY:" CLR_RESET "                                            " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_GRAY "Previous Index : %10.1f kWh" CLR_RESET "   " 
+           CLR_GRAY "Gross Consumed  : %10.1f kWh" CLR_RESET "   " DBOX_V "\n", b->prev_reading, b->gross_units);
+    printf("  " DBOX_V "  " CLR_GRAY "Current Index  : %10.1f kWh" CLR_RESET "   " 
+           CLR_GREEN "Solar Exported  : %10.1f kWh" CLR_RESET "   " DBOX_V "\n", b->curr_reading, b->solar_units);
+    printf("  " DBOX_V "  " CLR_GRAY "Power Factor   : %10.2f pf " CLR_RESET "   " 
+           CLR_YELLOW CLR_BOLD "NET BILLED UNITS: %10.1f kWh" CLR_RESET "   " DBOX_V "\n",
            b->power_factor, b->billed_units);
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
     /* Slabs breakdown */
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "SLAB-BASED ENERGY CHARGES BREAKDOWN:" CLR_RESET "                              " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "%-6s  %-24s  %12s  %18s" CLR_RESET "  " DBOX_V "\n", "Slab", "Units Billed", "Rate (₹)", "Amount (₹)");
-    printf("  " DBOX_V "  " CLR_DARK_GRAY "──────────────────────────────────────────────────────────────────" CLR_RESET "  " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "PROGRESSIVE TIER SLAB COMPUTATION:" CLR_RESET "                                       " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_DARK_GRAY "%-8s  %-24s  %12s  %18s" CLR_RESET "  " DBOX_V "\n", "Tier", "Units Charged", "Tariff Rate", "Subtotal Amount");
+    printf("  " DBOX_V "  " CLR_DARK_GRAY "────────────────────────────────────────────────────────────────────" CLR_RESET "  " DBOX_V "\n");
 
     for (int s = 0; s < b->slab_breakdown_count; s++) {
         if (b->slab_units[s] > 0.0 || s == 0) {
-            printf("  " DBOX_V "  Tier %-2d %10.1f kWh           @ ₹ %6.2f      ₹ %14.2f  " DBOX_V "\n",
+            printf("  " DBOX_V "  " CLR_WHITE "Tier %-2d" CLR_RESET "  %10.1f kWh           @ " CLR_YELLOW "₹ %6.2f" CLR_RESET "      " CLR_WHITE "₹ %14.2f" CLR_RESET "  " DBOX_V "\n",
                    s + 1, b->slab_units[s], b->slab_rates[s], b->slab_amounts[s]);
         }
     }
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Subtotal Energy Charges:" CLR_RESET "                            " 
+    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "Subtotal Energy Assessment:" CLR_RESET "                               " 
            CLR_YELLOW CLR_BOLD "₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->total_energy_charges);
 
     if (b->tod_adjustment > 0.0) {
-        printf("  " DBOX_V "  " CLR_YELLOW "Time-of-Day (ToD) Peak Hours Surcharge:        ₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->tod_adjustment);
+        printf("  " DBOX_V "  " CLR_YELLOW "⚡ Time-of-Day (ToD) Peak Stress Surcharge:             ₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->tod_adjustment);
     }
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
     /* Fixed charges and Taxes */
-    printf("  " DBOX_V "  " CLR_WHITE CLR_BOLD "FIXED CHARGES & REGULATORY LEVIES:" CLR_RESET "                                " DBOX_V "\n");
-    printf("  " DBOX_V "  Fixed Sanctioned Load Charges               :  ₹ %14.2f  " DBOX_V "\n", b->fixed_charges);
-    printf("  " DBOX_V "  Meter Hire & Instrument Rent                :  ₹ %14.2f  " DBOX_V "\n", b->meter_rent);
-    printf("  " DBOX_V "  Regulatory Asset Surcharge                  :  ₹ %14.2f  " DBOX_V "\n", b->regulatory_surcharge);
-    printf("  " DBOX_V "  State Electricity Duty (Govt. Tax)          :  ₹ %14.2f  " DBOX_V "\n", b->electricity_duty);
-    printf("  " DBOX_V "  Clean Energy & Environment Cess             :  ₹ %14.2f  " DBOX_V "\n", b->green_cess);
-    printf("  " DBOX_V "  Fuel Surcharge Adjustment (FPPCA)           :  ₹ %14.2f  " DBOX_V "\n", b->fppca_charges);
+    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "FIXED CHARGES & STATUTORY REGULATORY SURCHARGES:" CLR_RESET "                         " DBOX_V "\n");
+    printf("  " DBOX_V "  Contract Demand Load Charge (₹/kW/month)      :  ₹ %14.2f  " DBOX_V "\n", b->fixed_charges);
+    printf("  " DBOX_V "  Meter Rental & Maintenance Fee                :  ₹ %14.2f  " DBOX_V "\n", b->meter_rent);
+    printf("  " DBOX_V "  Regulatory Asset Recovery Surcharge           :  ₹ %14.2f  " DBOX_V "\n", b->regulatory_surcharge);
+    printf("  " DBOX_V "  State Electricity Duty & Statutory Cess       :  ₹ %14.2f  " DBOX_V "\n", b->electricity_duty);
+    printf("  " DBOX_V "  Clean Energy Environmental Fund Cess          :  ₹ %14.2f  " DBOX_V "\n", b->green_cess);
+    printf("  " DBOX_V "  Fuel Surcharge Price Adjustment (FPPCA)       :  ₹ %14.2f  " DBOX_V "\n", b->fppca_charges);
 
     if (fabs(b->pf_penalty_or_rebate) > 0.01) {
-        printf("  " DBOX_V "  Industrial Power Factor Adjustment          :  ₹ %14.2f  " DBOX_V "\n", b->pf_penalty_or_rebate);
+        printf("  " DBOX_V "  Industrial Power Factor Reactive Adjustment   :  ₹ %14.2f  " DBOX_V "\n", b->pf_penalty_or_rebate);
     }
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
     /* Total and Adjustments */
-    printf("  " DBOX_V "  Current Cycle Assessment                    :  ₹ %14.2f  " DBOX_V "\n", b->current_cycle_total);
+    printf("  " DBOX_V "  Current Cycle Assessment Total                :  ₹ %14.2f  " DBOX_V "\n", b->current_cycle_total);
     if (b->previous_arrears > 0.0) {
-        printf("  " DBOX_V "  " CLR_RED "Add: Previous Outstanding Arrears           :  ₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->previous_arrears);
+        printf("  " DBOX_V "  " CLR_RED "Add: Prior Ledger Arrears Brought Forward     :  ₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->previous_arrears);
     }
     if (b->advance_adjusted > 0.0) {
-        printf("  " DBOX_V "  " CLR_GREEN "Less: Advance Payment Adjusted              : -₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->advance_adjusted);
+        printf("  " DBOX_V "  " CLR_GREEN "Less: Unutilized Advance Credit Adjusted      : -₹ %14.2f" CLR_RESET "  " DBOX_V "\n", b->advance_adjusted);
     }
 
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
-    /* Net Payable Highlight */
-    printf("  " DBOX_V "  " BG_CYAN CLR_WHITE CLR_BOLD "  NET PAYABLE AMOUNT (BY DUE DATE)         :  ₹ %14.2f  " CLR_RESET "  " DBOX_V "\n", b->net_payable_amount);
+    /* Net Payable Highlight Banner */
+    printf("  " DBOX_V "  " BG_CYAN CLR_WHITE CLR_BOLD "  NET TOTAL AMOUNT PAYABLE (BY DUE DATE)      :  ₹ %14.2f  " CLR_RESET "  " DBOX_V "\n", b->net_payable_amount);
     
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
-    printf("  " DBOX_V "  " CLR_GREEN "Early Payment (If paid before %s) : Pay ₹ %-12.2f" CLR_RESET " " DBOX_V "\n", 
+    printf("  " DBOX_V "  " CLR_GREEN "Prompt Payment Discount (Before %s) : Pay ₹ %-12.2f" CLR_RESET " " DBOX_V "\n", 
            b->due_date, (b->net_payable_amount - b->prompt_payment_rebate > 0.0) ? (b->net_payable_amount - b->prompt_payment_rebate) : 0.0);
-    printf("  " DBOX_V "  " CLR_RED "Late Surcharge (If paid after %s)  : Pay ₹ %-12.2f" CLR_RESET " " DBOX_V "\n", 
+    printf("  " DBOX_V "  " CLR_RED "Late Payment Surcharge  (After %s)  : Pay ₹ %-12.2f" CLR_RESET " " DBOX_V "\n", 
            b->due_date, b->net_payable_amount + b->late_payment_surcharge);
 
-    /* QR Code Placeholder */
+    /* QR Matrix & Instant Digital Payment */
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
-    printf("  " DBOX_V "  " CLR_DARK_GRAY "[ ▄█▀█▄ UPI DIGITAL PAYMENT ENABLED - SCAN VIA ANY BANKING APP ▄█▀█▄ ]" CLR_RESET "   " DBOX_V "\n");
-    printf("  " DBOX_V "  " CLR_GRAY "Payment Modes Accepted: UPI, NetBanking, Credit/Debit Cards, Cash Kiosk" CLR_RESET "   " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_CYAN CLR_BOLD "INSTANT DIGITAL UPI SETTLEMENT (BHARAT BILLPAY / ANY BANK):" CLR_RESET "          " DBOX_V "\n");
+    char qr_link[64];
+    snprintf(qr_link, sizeof(qr_link), "upi://pay?pa=voltbill@bank&am=%.2f", b->net_payable_amount);
+    ui_render_ascii_qr(qr_link);
 
     printf("  " DBOX_BL);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_BR "\n");
 
-    printf("  " CLR_GRAY "Generated by VoltBill Engine • Architect: Akshar Miyani" CLR_RESET "\n\n");
+    printf("  " CLR_GRAY "Generated by VoltBill Core Engine ◈ Systems Architect: Akshar Miyani" CLR_RESET "\n\n");
 }
 
 int billing_export_text_invoice(const BillBreakdown *b, const Consumer *c) {
@@ -554,7 +561,6 @@ void billing_batch_generate_flow(void) {
         BillBreakdown *latest = billing_get_latest_for_consumer(c->id);
         double prev = latest ? latest->curr_reading : 0.0;
         
-        /* Realistic consumption simulation based on sanctioned load */
         double delta = c->sanctioned_load_kw * (80.0 + (rand() % 40));
         double curr = prev + delta;
         double solar = (c->solar_capacity_kw > 0.0) ? (c->solar_capacity_kw * (30.0 + (rand() % 15))) : 0.0;
@@ -587,20 +593,20 @@ void billing_batch_generate_flow(void) {
 
     printf("\n\n");
     printf("  " DBOX_TL);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_TR "\n");
 
-    printf("  " DBOX_V "  " CLR_GREEN CLR_BOLD "✓ BATCH BILLING RUN COMPLETED SUCCESSFULLY" CLR_RESET "                             " DBOX_V "\n");
+    printf("  " DBOX_V "  " CLR_GREEN CLR_BOLD "✓ BATCH BILLING RUN COMPLETED SUCCESSFULLY" CLR_RESET "                               " DBOX_V "\n");
     printf("  " DBOX_T_RIGHT);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_T_LEFT "\n");
 
-    printf("  " DBOX_V "  " CLR_WHITE "Total Invoices Generated :" CLR_RESET " " CLR_CYAN "%-44d" CLR_RESET " " DBOX_V "\n", generated);
-    printf("  " DBOX_V "  " CLR_WHITE "Total Energy Billed      :" CLR_RESET " " CLR_YELLOW "%-10.1f kWh" CLR_RESET "                                   " DBOX_V "\n", total_units_batched);
-    printf("  " DBOX_V "  " CLR_WHITE "Total Revenue Assessed   :" CLR_RESET " " CLR_GREEN "₹ %-12.2f" CLR_RESET "                                  " DBOX_V "\n", total_revenue_batched);
+    printf("  " DBOX_V "  " CLR_WHITE "Total Invoices Generated :" CLR_RESET " " CLR_CYAN "%-46d" CLR_RESET " " DBOX_V "\n", generated);
+    printf("  " DBOX_V "  " CLR_WHITE "Total Energy Billed      :" CLR_RESET " " CLR_YELLOW "%-10.1f kWh" CLR_RESET "                                     " DBOX_V "\n", total_units_batched);
+    printf("  " DBOX_V "  " CLR_WHITE "Total Revenue Assessed   :" CLR_RESET " " CLR_GREEN "₹ %-12.2f" CLR_RESET "                                    " DBOX_V "\n", total_revenue_batched);
 
     printf("  " DBOX_BL);
-    for (int i = 0; i < 74; i++) printf(DBOX_H);
+    for (int i = 0; i < 76; i++) printf(DBOX_H);
     printf(DBOX_BR "\n");
 
     pause_prompt();
@@ -633,16 +639,16 @@ void billing_filter_flow(void) {
 
     ui_header("FILTERED INVOICE RESULTS", "Matching Billing Ledgers");
 
-    printf("  " CLR_GRAY "┌──────────────┬────────────┬──────────┬──────────┬──────────────┬──────────────┬───────────┐" CLR_RESET "\n");
-    printf("  " CLR_GRAY "│ " CLR_CYAN CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
-           CLR_WHITE CLR_BOLD "%-10s" CLR_RESET CLR_GRAY "│ " 
-           CLR_YELLOW CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
-           CLR_WHITE CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
-           CLR_WHITE CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
-           CLR_GREEN CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
-           CLR_VIOLET CLR_BOLD "%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+    printf("  " CLR_DARK_GRAY "┌──────────────┬────────────┬──────────┬──────────┬──────────────┬──────────────┬───────────┐" CLR_RESET "\n");
+    printf("  " CLR_DARK_GRAY "│ " CLR_CYAN CLR_BOLD "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-10s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_YELLOW CLR_BOLD "%-8s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-8s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_GREEN CLR_BOLD "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_VIOLET CLR_BOLD "%-9s" CLR_RESET CLR_DARK_GRAY "│" CLR_RESET "\n",
            "Bill ID", "Consumer", "Cycle", "Units", "Assessed (₹)", "Payable (₹)", "Status");
-    printf("  " CLR_GRAY "├──────────────┼────────────┼──────────┼──────────┼──────────────┼──────────────┼───────────┤" CLR_RESET "\n");
+    printf("  " CLR_DARK_GRAY "├──────────────┼────────────┼──────────┼──────────┼──────────────┼──────────────┼───────────┤" CLR_RESET "\n");
 
     int match_count = 0;
     for (int i = 0; i < g_bill_count; i++) {
@@ -660,19 +666,19 @@ void billing_filter_flow(void) {
             const char *st_clr = (b->status == BILL_PAID) ? CLR_GREEN : CLR_YELLOW;
             const char *st_str = (b->status == BILL_PAID) ? "Paid" : (b->status == BILL_PARTIALLY_PAID ? "Partial" : "Pending");
 
-            printf("  " CLR_GRAY "│ " CLR_CYAN "%-12s" CLR_RESET CLR_GRAY "│ " 
-                   CLR_WHITE "%-10s" CLR_RESET CLR_GRAY "│ " 
-                   CLR_GRAY "%-8s" CLR_RESET CLR_GRAY "│ " 
-                   CLR_WHITE "%8.1f" CLR_RESET CLR_GRAY "│ " 
-                   CLR_WHITE "%12.2f" CLR_RESET CLR_GRAY "│ " 
-                   CLR_YELLOW CLR_BOLD "%12.2f" CLR_RESET CLR_GRAY "│ " 
-                   "%s%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+            printf("  " CLR_DARK_GRAY "│ " CLR_CYAN "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+                   CLR_WHITE "%-10s" CLR_RESET CLR_DARK_GRAY "│ " 
+                   CLR_GRAY "%-8s" CLR_RESET CLR_DARK_GRAY "│ " 
+                   CLR_WHITE "%8.1f" CLR_RESET CLR_DARK_GRAY "│ " 
+                   CLR_WHITE "%12.2f" CLR_RESET CLR_DARK_GRAY "│ " 
+                   CLR_YELLOW CLR_BOLD "%12.2f" CLR_RESET CLR_DARK_GRAY "│ " 
+                   "%s%-9s" CLR_RESET CLR_DARK_GRAY "│" CLR_RESET "\n",
                    b->bill_id, b->consumer_id, b->billing_cycle, b->billed_units,
                    b->current_cycle_total, b->net_payable_amount, st_clr, st_str);
         }
     }
 
-    printf("  " CLR_GRAY "└──────────────┴────────────┴──────────┴──────────┴──────────────┴──────────────┴───────────┘" CLR_RESET "\n");
+    printf("  " CLR_DARK_GRAY "└──────────────┴────────────┴──────────┴──────────┴──────────────┴──────────────┴───────────┘" CLR_RESET "\n");
     printf("  " CLR_GRAY "Matching Records Found: " CLR_CYAN "%d" CLR_RESET "\n", match_count);
 
     pause_prompt();
@@ -687,16 +693,16 @@ void billing_list_all(void) {
         return;
     }
 
-    printf("  " CLR_GRAY "┌──────────────┬────────────┬──────────┬──────────┬──────────────┬──────────────┬───────────┐" CLR_RESET "\n");
-    printf("  " CLR_GRAY "│ " CLR_CYAN CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
-           CLR_WHITE CLR_BOLD "%-10s" CLR_RESET CLR_GRAY "│ " 
-           CLR_YELLOW CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
-           CLR_WHITE CLR_BOLD "%-8s" CLR_RESET CLR_GRAY "│ " 
-           CLR_WHITE CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
-           CLR_GREEN CLR_BOLD "%-12s" CLR_RESET CLR_GRAY "│ " 
-           CLR_VIOLET CLR_BOLD "%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+    printf("  " CLR_DARK_GRAY "┌──────────────┬────────────┬──────────┬──────────┬──────────────┬──────────────┬───────────┐" CLR_RESET "\n");
+    printf("  " CLR_DARK_GRAY "│ " CLR_CYAN CLR_BOLD "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-10s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_YELLOW CLR_BOLD "%-8s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-8s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_WHITE CLR_BOLD "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_GREEN CLR_BOLD "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+           CLR_VIOLET CLR_BOLD "%-9s" CLR_RESET CLR_DARK_GRAY "│" CLR_RESET "\n",
            "Bill ID", "Consumer", "Cycle", "Units", "Assessed (₹)", "Payable (₹)", "Status");
-    printf("  " CLR_GRAY "├──────────────┼────────────┼──────────┼──────────┼──────────────┼──────────────┼───────────┤" CLR_RESET "\n");
+    printf("  " CLR_DARK_GRAY "├──────────────┼────────────┼──────────┼──────────┼──────────────┼──────────────┼───────────┤" CLR_RESET "\n");
 
     for (int i = 0; i < g_bill_count; i++) {
         BillBreakdown *b = &g_bills[i];
@@ -713,18 +719,18 @@ void billing_list_all(void) {
             status_clr = CLR_RED;
         }
 
-        printf("  " CLR_GRAY "│ " CLR_CYAN "%-12s" CLR_RESET CLR_GRAY "│ " 
-               CLR_WHITE "%-10s" CLR_RESET CLR_GRAY "│ " 
-               CLR_GRAY "%-8s" CLR_RESET CLR_GRAY "│ " 
-               CLR_WHITE "%8.1f" CLR_RESET CLR_GRAY "│ " 
-               CLR_WHITE "%12.2f" CLR_RESET CLR_GRAY "│ " 
-               CLR_YELLOW CLR_BOLD "%12.2f" CLR_RESET CLR_GRAY "│ " 
-               "%s%-9s" CLR_RESET CLR_GRAY "│" CLR_RESET "\n",
+        printf("  " CLR_DARK_GRAY "│ " CLR_CYAN "%-12s" CLR_RESET CLR_DARK_GRAY "│ " 
+               CLR_WHITE "%-10s" CLR_RESET CLR_DARK_GRAY "│ " 
+               CLR_GRAY "%-8s" CLR_RESET CLR_DARK_GRAY "│ " 
+               CLR_WHITE "%8.1f" CLR_RESET CLR_DARK_GRAY "│ " 
+               CLR_WHITE "%12.2f" CLR_RESET CLR_DARK_GRAY "│ " 
+               CLR_YELLOW CLR_BOLD "%12.2f" CLR_RESET CLR_DARK_GRAY "│ " 
+               "%s%-9s" CLR_RESET CLR_DARK_GRAY "│" CLR_RESET "\n",
                b->bill_id, b->consumer_id, b->billing_cycle, b->billed_units,
                b->current_cycle_total, b->net_payable_amount, status_clr, status_str);
     }
 
-    printf("  " CLR_GRAY "└──────────────┴────────────┴──────────┴──────────┴──────────────┴──────────────┴───────────┘" CLR_RESET "\n");
+    printf("  " CLR_DARK_GRAY "└──────────────┴────────────┴──────────┴──────────┴──────────────┴──────────────┴───────────┘" CLR_RESET "\n");
     printf("  " CLR_GRAY "Total Invoices: " CLR_CYAN CLR_BOLD "%d" CLR_RESET "\n", g_bill_count);
 
     printf("\n  " CLR_WHITE "Enter Bill ID to view full invoice (or press Enter to return): " CLR_RESET);
