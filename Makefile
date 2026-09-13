@@ -12,9 +12,18 @@ TARGET = $(BINDIR)/voltbill
 SOURCES = $(wildcard $(SRCDIR)/*.c)
 OBJECTS = $(patsubst $(SRCDIR)/%.c, $(BINDIR)/%.o, $(SOURCES))
 
-.PHONY: all clean install run
+.PHONY: all clean install run test
+
+TEST_TARGET = $(BINDIR)/test_suite
+TEST_SOURCES = tests/test_suite.c $(filter-out $(SRCDIR)/main.c, $(SOURCES))
 
 all: $(TARGET)
+
+test: $(TEST_TARGET)
+	@./$(TEST_TARGET)
+
+$(TEST_TARGET): $(TEST_SOURCES) | $(BINDIR)
+	$(CC) $(CFLAGS) $(TEST_SOURCES) -o $@ $(LDFLAGS)
 
 $(TARGET): $(OBJECTS) | $(BINDIR)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
