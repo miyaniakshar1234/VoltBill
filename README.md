@@ -84,19 +84,47 @@ curl -fsSL https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/inst
 
 ### 📦 Windows Package Managers
 
-#### Via Scoop:
-```powershell
-scoop install https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/packaging/scoop/voltbill.json
-```
-
 #### Via Winget:
 ```powershell
 winget install AksharMiyani.VoltBill
 ```
 
+#### Via Scoop:
+```powershell
+scoop install https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/packaging/scoop/voltbill.json
+```
+
+### 🐧 Debian / Ubuntu (APT & DPKG)
+Download prebuilt `.deb` from the [Releases](https://github.com/miyaniakshar1234/VoltBill/releases) page or build locally:
+```bash
+# Direct install with APT:
+sudo apt install ./voltbill-linux-amd64.deb
+
+# Or build .deb directly from repository:
+chmod +x packaging/debian/build_deb.sh
+./packaging/debian/build_deb.sh
+sudo dpkg -i voltbill_2.0.0_amd64.deb
+```
+
 ### 🍺 macOS (Homebrew Tap)
 ```bash
 brew install miyaniakshar1234/tap/voltbill
+```
+
+### ⚡ Shell Auto-Completions
+VoltBill includes first-class auto-completions for Bash, Zsh, Fish, and PowerShell:
+```bash
+# Bash:
+sudo cp completions/voltbill.bash /etc/bash_completion.d/voltbill
+
+# Zsh:
+cp completions/_voltbill ~/.zsh/completion/
+
+# Fish:
+cp completions/voltbill.fish ~/.config/fish/completions/
+
+# PowerShell (add to $PROFILE):
+. completions\voltbill.ps1
 ```
 
 ---

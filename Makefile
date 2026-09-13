@@ -32,11 +32,22 @@ clean:
 install: $(TARGET)
 	install -d /usr/local/bin
 	install -m 755 $(TARGET) /usr/local/bin/voltbill
+	@if [ -f man/voltbill.1 ]; then \
+		install -d /usr/local/share/man/man1; \
+		install -m 644 man/voltbill.1 /usr/local/share/man/man1/voltbill.1; \
+		echo "✓ man page installed to /usr/local/share/man/man1/voltbill.1"; \
+	fi
+	@if [ -f completions/voltbill.bash ] && [ -d /etc/bash_completion.d ]; then \
+		install -m 644 completions/voltbill.bash /etc/bash_completion.d/voltbill; \
+		echo "✓ bash completion installed to /etc/bash_completion.d/voltbill"; \
+	fi
 	@echo "✓ voltbill installed to /usr/local/bin/voltbill"
 
 uninstall:
 	rm -f /usr/local/bin/voltbill
-	@echo "✓ voltbill uninstalled from /usr/local/bin"
+	rm -f /usr/local/share/man/man1/voltbill.1
+	rm -f /etc/bash_completion.d/voltbill
+	@echo "✓ voltbill uninstalled from system"
 
 run: $(TARGET)
 	./$(TARGET)

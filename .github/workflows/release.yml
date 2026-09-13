@@ -44,15 +44,22 @@ jobs:
       run: |
         Compress-Archive -Path build\Release\voltbill.exe, config\tariffs.cfg, LICENSE, README.md -DestinationPath ${{ matrix.artifact }}
 
-    - name: Package Unix Binary
+    - name: Package Unix Binary & Debian Package
       if: runner.os != 'Windows'
       run: |
         cp build/voltbill .
         tar -czvf ${{ matrix.artifact }} voltbill config/tariffs.cfg LICENSE README.md
+        if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          chmod +x packaging/debian/build_deb.sh
+          ./packaging/debian/build_deb.sh
+          cp voltbill_2.0.0_amd64.deb voltbill-linux-amd64.deb
+        fi
 
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ matrix.artifact }}
+        files: |
+          ${{ matrix.artifact }}
+          *.deb
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

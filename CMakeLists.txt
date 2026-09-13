@@ -34,12 +34,16 @@ endif()
 # Installation target
 install(TARGETS voltbill DESTINATION bin)
 install(DIRECTORY config/ DESTINATION etc/voltbill OPTIONAL)
+install(FILES man/voltbill.1 DESTINATION share/man/man1 OPTIONAL)
+install(FILES completions/voltbill.bash DESTINATION share/bash-completion/completions RENAME voltbill OPTIONAL)
+install(FILES completions/voltbill.fish DESTINATION share/fish/vendor_completions.d OPTIONAL)
+install(FILES completions/_voltbill DESTINATION share/zsh/site-functions OPTIONAL)
 
 # CPack configuration for cross-platform binary releases
 set(CPACK_PACKAGE_NAME "voltbill")
 set(CPACK_PACKAGE_VENDOR "Akshar Miyani")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "VoltBill: Console Electricity Billing & Utility Management System in C")
-set(CPACK_PACKAGE_VERSION "1.1.0")
+set(CPACK_PACKAGE_VERSION "2.0.0")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/miyaniakshar1234/VoltBill")
 set(CPACK_PACKAGE_CONTACT "https://github.com/miyaniakshar1234/VoltBill")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")

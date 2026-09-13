@@ -1,0 +1,73 @@
+.TH VOLTBILL 1 "September 2026" "VoltBill 2.0.0" "User Commands"
+.SH NAME
+voltbill \- high-performance utility distribution & grid analytics engine in native C
+.SH SYNOPSIS
+.B voltbill
+[\fIOPTIONS\fR]
+.br
+.B voltbill
+\fICOMMAND\fR [\fIARGS...\fR]
+.SH DESCRIPTION
+.B VoltBill
+is an enterprise-grade utility distribution engine and customer management system written in native ISO C.
+Engineered under strict systems programming invariants, VoltBill combines a 24-bit TrueColor cyber-aesthetic TUI,
+multi-tier progressive slab billing, solar rooftop net-metering, industrial power factor regulation,
+Time-of-Day (ToD) peak-hour tariffs, defaulter notice automation, grid-wide batch billing, and scriptable CLI subcommands.
+.PP
+VoltBill operates with deterministic sub-microsecond calculation latency and a constant memory footprint of < 1.9 MB RSS,
+providing zero dynamic heap churn on transaction-critical execution paths.
+.SH OPTIONS
+.TP
+.BR \-\-demo ", " \-\-seed
+Seed realistic consumer and billing records and launch interactive dashboard.
+.TP
+.BR \-\-export
+Export all consumer registries and billing records to CSV spreadsheets.
+.TP
+.BR \-\-backup
+Create an atomic, timestamped JSON snapshot of all system data.
+.TP
+.BR \-\-batch
+Execute batch billing run across all active grid nodes.
+.TP
+.BR \-v ", " \-\-version
+Display version and lead architect information.
+.TP
+.BR \-h ", " \-\-help
+Display usage information and exit.
+.SH COMMANDS
+.TP
+.BI bill " <consumer_id> <reading>"
+Generate invoice directly from the terminal for the given consumer ID and current meter reading.
+.TP
+.BI pay " <consumer_id> <amount> [mode]"
+Process payment for the given consumer ID. Mode: 0=Cash, 1=UPI, 2=Card, 3=NetBank.
+.TP
+.BI status " <consumer_id>"
+Display instant account balance, arrears, and meter status.
+.TP
+.BI calc " <units> [category] [solar_export]"
+Run instant tariff simulation. Category: 0=Domestic, 1=Commercial, 2=Industrial, 3=Agricultural.
+.TP
+.BI qr " <payload>"
+Synthesize and display a full-screen, high-contrast, phone-scannable ISO/IEC 18004 QR code matrix.
+.TP
+.BR scada ", " grid
+Launch real-time SCADA primary substation grid telemetry monitor.
+.SH FILES
+.TP
+.I data/customers.dat
+Binary datastore of registered consumers with CRC-32 integrity header.
+.TP
+.I data/bills.dat
+Binary datastore of finalized billing records.
+.TP
+.I data/payments.dat
+Binary datastore of payment transaction ledger.
+.TP
+.I config/tariffs.cfg
+Runtime tariff rate configuration file.
+.SH AUTHOR
+Lead Systems Architect: Akshar Miyani (https://github.com/miyaniakshar1234)
+.SH COPYRIGHT
+Copyright \(co 2026 Akshar Miyani. Released under the MIT License.

@@ -1,0 +1,61 @@
+#compdef voltbill
+# Zsh completion for VoltBill
+# Lead Architect: Akshar Miyani
+
+_voltbill() {
+    local -a commands
+    commands=(
+        'bill:Generate invoice directly from terminal: <id> <reading>'
+        'pay:Process payment: <id> <amount> [mode: 0=Cash 1=UPI 2=Card 3=NetBank]'
+        'status:Show instant balance and meter status: <id>'
+        'calc:Instant tariff simulation: <units> [cat: 0=Dom 1=Comm 2=Ind 3=Agri] [solar]'
+        'qr:Synthesize & display real scannable QR matrix: <payload>'
+        'scada:Launch real-time SCADA substation grid monitor'
+        'grid:Alias for scada telemetry monitor'
+    )
+
+    local -a options
+    options=(
+        '(--demo --seed)'{--demo,--seed}'[Seed realistic demo records & launch dashboard]'
+        '--export[Export all consumers and bills to CSV and exit]'
+        '--backup[Create a full timestamped JSON backup snapshot]'
+        '--batch[Execute batch billing run for all active consumers]'
+        '(-v --version)'{-v,--version}'[Display developer info and version]'
+        '(-h --help)'{-h,--help}'[Show help message and syntax]'
+    )
+
+    _arguments \
+        '1: :->command' \
+        '*: :->args' && return 0
+
+    case "$state" in
+        command)
+            _describe -t commands 'voltbill command' commands
+            _describe -t options 'voltbill option' options
+            ;;
+        args)
+            case $words[2] in
+                calc)
+                    if [ $CURRENT -eq 4 ]; then
+                        _values 'Tariff Category' \
+                            '0[Domestic (Residential)]' \
+                            '1[Commercial (Office/Retail)]' \
+                            '2[Industrial (Manufacturing)]' \
+                            '3[Agricultural (Irrigation)]'
+                    fi
+                    ;;
+                pay)
+                    if [ $CURRENT -eq 5 ]; then
+                        _values 'Payment Mode' \
+                            '0[Cash]' \
+                            '1[UPI / Bharat BillPay]' \
+                            '2[Debit/Credit Card]' \
+                            '3[Net Banking]'
+                    fi
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_voltbill "$@"
