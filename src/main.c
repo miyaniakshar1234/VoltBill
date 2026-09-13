@@ -228,6 +228,7 @@ static void print_help(void) {
     printf("  voltbill calc <units> [cat] [sol]Instant tariff simulation (0=Dom, 1=Comm, 2=Ind, 3=Agri)\n");
     printf("  voltbill qr <payload>            Synthesize & display real scannable QR matrix\n");
     printf("  voltbill scada, voltbill grid    Launch real-time SCADA substation grid monitor\n");
+    printf("  voltbill ufls [freq] [rocof]     Dynamic Under-Frequency Load Shedding Defense Engine\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -311,6 +312,14 @@ int main(int argc, char *argv[]) {
         /* Scripting Subcommand: voltbill scada / grid */
         if (strcmp(argv[1], "scada") == 0 || strcmp(argv[1], "grid") == 0) {
             analytics_scada_grid_monitor();
+            restore_console();
+            return 0;
+        }
+        /* Scripting Subcommand: voltbill ufls [freq] [rocof] */
+        if (strcmp(argv[1], "ufls") == 0) {
+            double freq = (argc >= 3) ? atof(argv[2]) : 49.12;
+            double rocof = (argc >= 4) ? atof(argv[3]) : 0.65;
+            analytics_render_ufls_screen(freq, rocof);
             restore_console();
             return 0;
         }

@@ -14,6 +14,7 @@
 #include "../src/billing.h"
 #include "../src/customer.h"
 #include "../src/qrcodegen.h"
+#include "../src/analytics.h"
 
 static int g_tests_run = 0;
 static int g_tests_passed = 0;
@@ -154,6 +155,34 @@ void test_struct_invariants(void) {
     ASSERT_TRUE(sizeof(PaymentRecord) > 0 && sizeof(PaymentRecord) <= 512, "PaymentRecord struct bounded <= 512 bytes");
 }
 
+void test_ufls_algorithm(void) {
+    printf("\n" ANSI_CYAN ANSI_BOLD "[TEST SUITE 6: Automated Under-Frequency Load Shedding (UFLS)]" ANSI_RESET "\n");
+
+    UFLSResult res;
+
+    /* Normal grid conditions (50.02 Hz, ROCOF 0.02) -> 0 shed */
+    analytics_simulate_ufls(50.02, 0.02, &res);
+    ASSERT_TRUE(res.stage_tripped == 0, "Normal grid frequency triggers Stage 0 (no trip)");
+    ASSERT_NEAR(res.load_shed_kw, 0.0, 0.01, "Normal grid sheds 0 kW load");
+
+    /* Stage 1 trigger (49.40 Hz, ROCOF 0.45 Hz/s) */
+    analytics_simulate_ufls(49.40, 0.45, &res);
+    ASSERT_TRUE(res.stage_tripped == 1, "Under-frequency 49.4 Hz triggers Stage 1 shedding");
+    ASSERT_TRUE(res.feeders_tripped == 2, "Stage 1 trips 2 agricultural feeders");
+    ASSERT_TRUE(res.load_shed_kw > 0.0, "Stage 1 sheds positive kW load");
+
+    /* Stage 2 trigger (49.10 Hz, ROCOF 0.85 Hz/s) */
+    analytics_simulate_ufls(49.10, 0.85, &res);
+    ASSERT_TRUE(res.stage_tripped == 2, "Under-frequency 49.1 Hz triggers Stage 2 shedding");
+    ASSERT_TRUE(res.feeders_tripped == 5, "Stage 2 trips 5 feeders");
+
+    /* Stage 3 emergency (48.70 Hz, ROCOF 1.30 Hz/s) */
+    analytics_simulate_ufls(48.70, 1.30, &res);
+    ASSERT_TRUE(res.stage_tripped == 3, "Critical under-frequency 48.7 Hz triggers Stage 3 island emergency");
+    ASSERT_TRUE(res.feeders_tripped == 9, "Stage 3 trips 9 feeders to prevent grid blackout");
+    ASSERT_TRUE(res.recovered_freq_hz > 49.80, "Stage 3 successfully projects frequency restabilization > 49.80 Hz");
+}
+
 int main(void) {
     printf("\n=========================================================================\n");
     printf("  " ANSI_CYAN ANSI_BOLD "⚡ VoltBill Native C Regression & Integration Test Engine" ANSI_RESET "\n");
@@ -165,6 +194,7 @@ int main(void) {
     test_power_factor_regulation();
     test_qr_engine();
     test_struct_invariants();
+    test_ufls_algorithm();
 
     printf("\n=========================================================================\n");
     printf("  " ANSI_BOLD "TEST RESULTS SUMMARY:" ANSI_RESET "\n");
