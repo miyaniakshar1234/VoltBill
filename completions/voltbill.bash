@@ -8,7 +8,7 @@ _voltbill_completions() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     opts="--demo --seed --export --backup --batch --version -v --help -h"
-    commands="bill pay status calc qr scada grid"
+    commands="bill pay status calc qr scada grid ufls modbus"
 
     if [ "$COMP_CWORD" -eq 1 ]; then
         if [[ "$cur" == -* ]]; then

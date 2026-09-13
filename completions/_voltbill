@@ -12,6 +12,8 @@ _voltbill() {
         'qr:Synthesize & display real scannable QR matrix: <payload>'
         'scada:Launch real-time SCADA substation grid monitor'
         'grid:Alias for scada telemetry monitor'
+        'ufls:Dynamic under-frequency load shedding defense simulator: [freq] [rocof]'
+        'modbus:Inspect & decode industrial Modbus RTU telemetry: [hex-stream]'
     )
 
     local -a options

@@ -60,11 +60,14 @@ VoltBill includes a comprehensive enterprise-grade technical documentation suite
 | **🌱 Eco-Telemetry & Carbon Ledger** | Computes greenhouse emissions ($0.82 \text{ kg } CO_2\text{/kWh}$) and calculates mature trees required to neutralize the footprint. |
 | **📱 Real ISO/IEC 18004 QR Engine** | Generates authentic, 100% phone-camera-scannable QR matrices in the terminal with inverted high-contrast white background (`\033[47m`), black modules, and automatic 24-bit 300 DPI BMP image export (`data/bills/<ID>_qr.bmp`). |
 | **🏭 SCADA Substation & Grid Telemetry** | Live power distribution monitor calculating transformer load ($10\text{ MVA}$), grid frequency ($50.012\text{ Hz}$), reactive power vectors ($Q$), and harmonic distortion ($THD$). |
+| **🛡️ Under-Frequency Load Shedding (UFLS)** | Sub-15 microsecond dynamic defense algorithm analyzing frequency ($f_{grid}$) and rate of change ($ROCOF = df/dt$) to prevent cascading grid collapse. |
+| **🔌 Industrial Modbus RTU/TCP Protocol Engine** | Ingests 32-bit IEEE 754 floating point telemetry (Voltage, Current, Power vectors, Frequency, Energy) from ABB and Schneider Electric meters with hardware CRC-16 verification. |
+| **🧪 Native C Regression Test Suite** | 49 automated unit and regression test assertions executing with 100% success (`.\build.ps1 -Test` or `make test`). |
 | **💳 Payment & Audit Ledger** | Supports Cash, UPI, Credit/Debit Cards, and NetBanking. Generates verified receipts (`REC-xxxx`), tracks arrears, and advances. |
 | **🔒 Security Audit Trail** | Appends timestamped actions to `data/audit_trail.log` recording customer additions, billing events, and payments. |
 | **⚙️ Dynamic Tariff Config** | Runtime editable tariffs stored in `config/tariffs.cfg` — modify slab rates and taxes without recompiling code! |
 | **💾 Persistence & JSON Backup** | Fast binary datastores (`data/*.dat`), automated CSV spreadsheets (`data/export_*.csv`), and timestamped JSON snapshots (`data/backups/`). |
-| **💻 Scriptable CLI Subcommands** | Direct command-line automation (`voltbill bill`, `voltbill pay`, `voltbill status`, `voltbill calc`, `voltbill qr`, `voltbill scada`, `voltbill batch`, `voltbill backup`). |
+| **💻 Scriptable CLI Subcommands** | Direct command-line automation (`voltbill bill`, `voltbill pay`, `voltbill status`, `voltbill calc`, `voltbill qr`, `voltbill scada`, `voltbill ufls`, `voltbill modbus`, `voltbill batch`, `voltbill backup`). |
 
 ---
 
@@ -190,6 +193,12 @@ voltbill qr "upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill&am=1250.00&cu=IN
 
 # 🏭 Live SCADA Substation & Grid Frequency Telemetry Monitor
 voltbill scada
+
+# 🛡️ Dynamic Under-Frequency Load Shedding (UFLS) Defense Engine
+voltbill ufls 49.05 0.72
+
+# 🔌 Industrial Modbus RTU Telemetry Frame Inspector & Parser
+voltbill modbus
 
 # Display developer info and version
 voltbill --version

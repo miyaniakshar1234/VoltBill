@@ -5,7 +5,7 @@
 Register-ArgumentCompleter -Native -CommandName voltbill -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
 
-    $subcommands = @('bill', 'pay', 'status', 'calc', 'qr', 'scada', 'grid')
+    $subcommands = @('bill', 'pay', 'status', 'calc', 'qr', 'scada', 'grid', 'ufls', 'modbus')
     $options = @('--demo', '--seed', '--export', '--backup', '--batch', '--version', '-v', '--help', '-h')
 
     $elements = $commandAst.Elements

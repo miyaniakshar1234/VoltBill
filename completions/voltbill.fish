@@ -20,3 +20,5 @@ complete -c voltbill -n "__fish_use_subcommand" -a calc -d "Instant tariff simul
 complete -c voltbill -n "__fish_use_subcommand" -a qr -d "Synthesize & display real scannable QR matrix"
 complete -c voltbill -n "__fish_use_subcommand" -a scada -d "Launch real-time SCADA substation grid monitor"
 complete -c voltbill -n "__fish_use_subcommand" -a grid -d "Alias for scada telemetry monitor"
+complete -c voltbill -n "__fish_use_subcommand" -a ufls -d "Dynamic under-frequency load shedding defense simulator"
+complete -c voltbill -n "__fish_use_subcommand" -a modbus -d "Inspect & decode industrial Modbus RTU telemetry"
