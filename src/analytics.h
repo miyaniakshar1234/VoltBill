@@ -39,4 +39,27 @@ void analytics_print_carbon_footprint(double total_kwh, double solar_kwh);
  */
 void analytics_scada_grid_monitor(void);
 
+/**
+ * @brief Dynamic Under-Frequency Load Shedding (UFLS) telemetry result.
+ */
+typedef struct {
+    double initial_freq_hz;
+    double rocof_hz_per_sec;        /* df/dt */
+    int stage_tripped;              /* 0=Normal, 1=Stage 1, 2=Stage 2, 3=Stage 3 */
+    double load_shed_kw;            /* Amount shed */
+    double recovered_freq_hz;       /* Projected stabilized frequency */
+    int feeders_tripped;
+    const char *tripped_sectors;
+} UFLSResult;
+
+/**
+ * @brief Simulates dynamic Under-Frequency Load Shedding (UFLS) algorithm.
+ */
+void analytics_simulate_ufls(double initial_freq_hz, double rocof_hz_per_sec, UFLSResult *out_res);
+
+/**
+ * @brief Interactive screen demonstrating UFLS automatic load shedding.
+ */
+void analytics_render_ufls_screen(double trigger_freq, double rocof_hz_per_sec);
+
 #endif /* ANALYTICS_H */
