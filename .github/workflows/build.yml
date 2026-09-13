@@ -25,6 +25,14 @@ jobs:
     - name: Build Binary
       run: cmake --build build --config Release
 
+    - name: Run Native Regression Tests (Unix)
+      if: runner.os != 'Windows'
+      run: ctest --test-dir build --output-on-failure -C Release
+
+    - name: Run Native Regression Tests (Windows)
+      if: runner.os == 'Windows'
+      run: ctest --test-dir build --output-on-failure -C Release
+
     - name: Test CLI Version Output (Unix)
       if: runner.os != 'Windows'
       run: ./build/voltbill --version

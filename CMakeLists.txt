@@ -31,6 +31,31 @@ else()
     target_link_libraries(voltbill PRIVATE m)
 endif()
 
+# Regression Test Suite
+enable_testing()
+set(TEST_SOURCES
+    tests/test_suite.c
+    src/utils.c
+    src/ui.c
+    src/banner.c
+    src/tariff.c
+    src/customer.c
+    src/billing.c
+    src/payment.c
+    src/analytics.c
+    src/storage.c
+    src/qrcodegen.c
+)
+add_executable(test_suite ${TEST_SOURCES})
+if(MSVC)
+    target_compile_definitions(test_suite PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_options(test_suite PRIVATE /W3 /O2)
+else()
+    target_compile_options(test_suite PRIVATE -Wall -Wextra -O2)
+    target_link_libraries(test_suite PRIVATE m)
+endif()
+add_test(NAME regression_test_suite COMMAND test_suite)
+
 # Installation target
 install(TARGETS voltbill DESTINATION bin)
 install(DIRECTORY config/ DESTINATION etc/voltbill OPTIONAL)
