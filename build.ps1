@@ -13,8 +13,8 @@ Start-Sleep -Milliseconds 200
 New-Item -ItemType Directory -Force -Path "bin", "data", "config", "tests" | Out-Null
 
 $vcvars = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-$srcFiles = "src\main.c src\utils.c src\ui.c src\banner.c src\tariff.c src\customer.c src\billing.c src\payment.c src\analytics.c src\storage.c src\qrcodegen.c"
-$testSrcFiles = "tests\test_suite.c src\utils.c src\ui.c src\banner.c src\tariff.c src\customer.c src\billing.c src\payment.c src\analytics.c src\storage.c src\qrcodegen.c"
+$srcFiles = "src\main.c src\utils.c src\ui.c src\banner.c src\tariff.c src\customer.c src\billing.c src\payment.c src\analytics.c src\storage.c src\qrcodegen.c src\modbus.c"
+$testSrcFiles = "tests\test_suite.c src\utils.c src\ui.c src\banner.c src\tariff.c src\customer.c src\billing.c src\payment.c src\analytics.c src\storage.c src\qrcodegen.c src\modbus.c"
 
 if (Get-Command "cl.exe" -ErrorAction SilentlyContinue) {
     Write-Host "[FOUND] MSVC C Compiler (cl.exe)" -ForegroundColor Green

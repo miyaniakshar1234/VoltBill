@@ -15,6 +15,7 @@
 #include "../src/customer.h"
 #include "../src/qrcodegen.h"
 #include "../src/analytics.h"
+#include "../src/modbus.h"
 
 static int g_tests_run = 0;
 static int g_tests_passed = 0;
@@ -183,6 +184,44 @@ void test_ufls_algorithm(void) {
     ASSERT_TRUE(res.recovered_freq_hz > 49.80, "Stage 3 successfully projects frequency restabilization > 49.80 Hz");
 }
 
+void test_modbus_protocol(void) {
+    printf("\n" ANSI_CYAN ANSI_BOLD "[TEST SUITE 7: Industrial Modbus RTU Protocol & CRC-16 Engine]" ANSI_RESET "\n");
+
+    /* 1. Test CRC-16 standard Modbus polynomial (0xA001) */
+    uint8_t test_msg[] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x0A};
+    uint16_t crc = modbus_crc16(test_msg, sizeof(test_msg));
+    ASSERT_TRUE((crc & 0xFF) == 0xC5 && ((crc >> 8) & 0xFF) == 0xCD, "Standard Modbus RTU CRC-16 matches test vector (Low=0xC5, High=0xCD)");
+
+    /* 2. Test IEEE 754 Float register conversion (CDAB word swapped) */
+    uint16_t reg0 = 0, reg1 = 0;
+    float original_f = 230.45f;
+    modbus_float_to_registers(original_f, MODBUS_ENDIAN_CDAB, &reg0, &reg1);
+    float decoded_f = modbus_registers_to_float(reg0, reg1, MODBUS_ENDIAN_CDAB);
+    ASSERT_NEAR(decoded_f, 230.45, 0.01, "IEEE 754 float encode/decode matches across CDAB word-swapping");
+
+    /* 3. Test Full Frame Synthesis & Parse */
+    uint8_t frame[64];
+    size_t len = modbus_synthesize_rtu_frame(2, 415.0, 85.5, 35.48, 0.985, 50.012, 98500.0,
+                                            MODBUS_ENDIAN_CDAB, frame, sizeof(frame));
+    ASSERT_TRUE(len == 29, "Synthesized Modbus RTU frame length is exactly 29 bytes");
+
+    ModbusTelemetry tel;
+    int parse_ok = modbus_parse_rtu_frame(frame, len, MODBUS_ENDIAN_CDAB, &tel);
+    ASSERT_TRUE(parse_ok == 1, "Modbus RTU frame parsed successfully");
+    ASSERT_TRUE(tel.is_crc_valid == 1, "Modbus RTU CRC-16 verified valid");
+    ASSERT_TRUE(tel.slave_id == 2, "Slave ID matches synthesized node (0x02)");
+    ASSERT_TRUE(tel.function_code == 0x04, "Function code is Read Input Registers (0x04)");
+    ASSERT_NEAR(tel.voltage_v, 415.0, 0.1, "Decoded voltage matches 415.0 V");
+    ASSERT_NEAR(tel.current_a, 85.5, 0.1, "Decoded current matches 85.5 A");
+    ASSERT_NEAR(tel.active_power_kw, 35.48, 0.1, "Decoded active power matches 35.48 kW");
+    ASSERT_NEAR(tel.frequency_hz, 50.012, 0.005, "Decoded grid frequency matches 50.012 Hz");
+
+    /* 4. Test Corrupted Frame Rejection */
+    frame[10] ^= 0xFF; /* Flip bits in payload */
+    int bad_parse = modbus_parse_rtu_frame(frame, len, MODBUS_ENDIAN_CDAB, &tel);
+    ASSERT_TRUE(bad_parse == 0, "Corrupted Modbus RTU frame with CRC mismatch is strictly rejected");
+}
+
 int main(void) {
     printf("\n=========================================================================\n");
     printf("  " ANSI_CYAN ANSI_BOLD "⚡ VoltBill Native C Regression & Integration Test Engine" ANSI_RESET "\n");
@@ -195,6 +234,7 @@ int main(void) {
     test_qr_engine();
     test_struct_invariants();
     test_ufls_algorithm();
+    test_modbus_protocol();
 
     printf("\n=========================================================================\n");
     printf("  " ANSI_BOLD "TEST RESULTS SUMMARY:" ANSI_RESET "\n");

@@ -15,6 +15,7 @@
 #include "payment.h"
 #include "analytics.h"
 #include "storage.h"
+#include "modbus.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -229,6 +230,7 @@ static void print_help(void) {
     printf("  voltbill qr <payload>            Synthesize & display real scannable QR matrix\n");
     printf("  voltbill scada, voltbill grid    Launch real-time SCADA substation grid monitor\n");
     printf("  voltbill ufls [freq] [rocof]     Dynamic Under-Frequency Load Shedding Defense Engine\n");
+    printf("  voltbill modbus [hex]            Inspect & decode industrial Modbus RTU telemetry\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -320,6 +322,13 @@ int main(int argc, char *argv[]) {
             double freq = (argc >= 3) ? atof(argv[2]) : 49.12;
             double rocof = (argc >= 4) ? atof(argv[3]) : 0.65;
             analytics_render_ufls_screen(freq, rocof);
+            restore_console();
+            return 0;
+        }
+        /* Scripting Subcommand: voltbill modbus [hex] */
+        if (strcmp(argv[1], "modbus") == 0) {
+            const char *hex_data = (argc >= 3) ? argv[2] : NULL;
+            modbus_cli_demo(hex_data);
             restore_console();
             return 0;
         }

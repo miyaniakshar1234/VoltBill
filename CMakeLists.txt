@@ -17,6 +17,7 @@ set(SOURCES
     src/analytics.c
     src/storage.c
     src/qrcodegen.c
+    src/modbus.c
 )
 
 # Executable target
@@ -45,6 +46,7 @@ set(TEST_SOURCES
     src/analytics.c
     src/storage.c
     src/qrcodegen.c
+    src/modbus.c
 )
 add_executable(test_suite ${TEST_SOURCES})
 if(MSVC)
