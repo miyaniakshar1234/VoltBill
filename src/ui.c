@@ -374,23 +374,8 @@ void ui_message_box(const char *title, const char *message, int is_success) {
 }
 
 void ui_render_ascii_qr(const char *payload) {
-    printf("      " CLR_WHITE "█████████████████████████████████" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " " CLR_CYAN "█▀▄" CLR_WHITE " " CLR_DARK_GRAY "███████" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "▄ █" CLR_WHITE " " CLR_DARK_GRAY "█     █" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "██▀" CLR_WHITE " " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "▄▀▄" CLR_WHITE " " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "█▄█" CLR_WHITE " " CLR_DARK_GRAY "█     █" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " " CLR_CYAN "█ █" CLR_WHITE " " CLR_DARK_GRAY "███████" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██         " CLR_CYAN "▄▀█▀▄" CLR_WHITE "         ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_CYAN "██▀▄█▄▀▄█▀▄█▄▀█▄█▀▄█▄█" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_CYAN "█▄ ▄█▀▄ ▀ ▄█▀ █▄▀ █▄ ▀" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " " CLR_CYAN "█ ▀▄█ ▄▀█▄█" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_YELLOW "▄█▀█▀▄ █▀▄█" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█ ███ █" CLR_WHITE " " CLR_YELLOW "██▀ █▀█ █ █" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "█     █" CLR_WHITE " " CLR_CYAN "▀▄▀ ▄▀█ ▄ █" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "██ " CLR_DARK_GRAY "███████" CLR_WHITE " " CLR_CYAN "█▄█▀ █▄▀█▀█" CLR_WHITE " ██" CLR_RESET "\n");
-    printf("      " CLR_WHITE "█████████████████████████████████" CLR_RESET "\n");
-    if (payload && payload[0] != '\0') {
-        printf("      " CLR_GRAY "UPI PAY: " CLR_CYAN "%s" CLR_RESET "\n", payload);
+    if (!payload || payload[0] == '\0') {
+        payload = "upi://pay?pa=voltbill.utility@axisbank&pn=VoltBill%20Utility&cu=INR";
     }
+    ui_card_qr(76, payload);
 }
