@@ -1,0 +1,9 @@
+VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+
+The archive voltbill-windows-x64.zip can be downloaded from:
+https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.1.0/voltbill-windows-x64.zip
+
+Checksum (SHA256):
+C275B1C97F1E8BD55C2436C56837A7F64794ECADB2EEE64DAB831B289D418B8C

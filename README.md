@@ -97,6 +97,15 @@ winget install AksharMiyani.VoltBill
 scoop install https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/packaging/scoop/voltbill.json
 ```
 
+#### Via Chocolatey:
+```powershell
+# From local repository / downloaded .nupkg:
+choco install voltbill --source packaging/chocolatey -y
+
+# Direct from release package:
+choco install voltbill --source https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.1.0/voltbill.2.1.0.nupkg -y
+```
+
 ### 🐧 Debian / Ubuntu (APT & DPKG)
 Download prebuilt `.deb` from the [Releases](https://github.com/miyaniakshar1234/VoltBill/releases) page or build locally:
 ```bash

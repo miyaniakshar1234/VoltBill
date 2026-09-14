@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>voltbill</id>
+    <version>2.1.0</version>
+    <packageSourceUrl>https://github.com/miyaniakshar1234/VoltBill/tree/main/packaging/chocolatey</packageSourceUrl>
+    <owners>Akshar Miyani</owners>
+    <title>VoltBill</title>
+    <authors>Akshar Miyani</authors>
+    <projectUrl>https://github.com/miyaniakshar1234/VoltBill</projectUrl>
+    <licenseUrl>https://github.com/miyaniakshar1234/VoltBill/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/miyaniakshar1234/VoltBill</projectSourceUrl>
+    <docsUrl>https://github.com/miyaniakshar1234/VoltBill/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/miyaniakshar1234/VoltBill/issues</bugTrackerUrl>
+    <tags>voltbill electricity billing utility energy c cli tui</tags>
+    <summary>High-Performance Utility Distribution and Grid Analytics Engine in Native C</summary>
+    <description><![CDATA[VoltBill is an enterprise-grade utility distribution engine and customer management system written in native ISO C (C99/C11).
+
+Features:
+- Multi-tier progressive slab billing
+- Solar net metering deduction
+- Industrial power factor penalty and rebate adjustment
+- Time-of-Day (ToD) tariff configuration
+- Dynamic runtime tariff editing
+- Authentic ISO/IEC 18004 QR code generation for digital UPI payments
+- Modbus RTU/TCP industrial telemetry decoder with CRC-16 polynomial verification
+- Automated Under-Frequency Load Shedding (UFLS) grid defense engine
+- Zero heap allocation in calculation hot paths (O(1) memory predictability)
+
+Engineered by Akshar Miyani.]]></description>
+    <releaseNotes>https://github.com/miyaniakshar1234/VoltBill/releases/tag/v2.1.0</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
