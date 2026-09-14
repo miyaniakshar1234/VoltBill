@@ -37,11 +37,24 @@ if ($LocalExe) {
 } else {
     Write-Host "  [1/3] Downloading latest release from GitHub ($ReleaseUrl)..." -ForegroundColor Yellow
     $ZipPath = Join-Path $env:TEMP "voltbill-windows-x64.zip"
+    $TempExtract = Join-Path $env:TEMP "voltbill_extract"
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
         Invoke-WebRequest -Uri $ReleaseUrl -OutFile $ZipPath -UseBasicParsing
-        Expand-Archive -Path $ZipPath -DestinationPath $BaseDir -Force
+        if (Test-Path $TempExtract) { Remove-Item $TempExtract -Recurse -Force -ErrorAction SilentlyContinue }
+        Expand-Archive -Path $ZipPath -DestinationPath $TempExtract -Force
+        if (Test-Path "$TempExtract\voltbill.exe") {
+            Copy-Item "$TempExtract\voltbill.exe" -Destination $ExePath -Force
+        } elseif (Test-Path "$TempExtract\bin\voltbill.exe") {
+            Copy-Item "$TempExtract\bin\voltbill.exe" -Destination $ExePath -Force
+        }
+        if (Test-Path "$TempExtract\tariffs.cfg") {
+            Copy-Item "$TempExtract\tariffs.cfg" -Destination (Join-Path $ConfigDir "tariffs.cfg") -Force
+        } elseif (Test-Path "$TempExtract\config\tariffs.cfg") {
+            Copy-Item "$TempExtract\config\tariffs.cfg" -Destination (Join-Path $ConfigDir "tariffs.cfg") -Force
+        }
         Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
+        Remove-Item $TempExtract -Recurse -Force -ErrorAction SilentlyContinue
     } catch {
         Write-Host "  [!] Release binary download failed. Attempting local compilation..." -ForegroundColor Yellow
         if (Test-Path "build.ps1") {
