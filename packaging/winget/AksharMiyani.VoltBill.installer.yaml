@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 PackageIdentifier: AksharMiyani.VoltBill
-PackageVersion: 2.0.0
+PackageVersion: 2.1.0
 Platform:
 - Windows.Desktop
 InstallModes:
@@ -9,8 +9,8 @@ InstallModes:
 Installers:
 - Architecture: x64
   InstallerType: zip
-  InstallerUrl: https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.0.0/voltbill-windows-x64.zip
-  InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+  InstallerUrl: https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.1.0/voltbill-windows-x64.zip
+  InstallerSha256: AC9CACC7B6B170E3017D0CAB06DB7F7931382B3501EA0083650ADF3A059E7880
   NestedInstallerType: portable
   NestedInstallerFiles:
   - RelativeFilePath: voltbill.exe

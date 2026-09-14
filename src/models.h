@@ -10,6 +10,8 @@
 
 #include <stddef.h>
 
+#define VOLTBILL_VERSION "2.1.0"
+
 #define MAX_SLABS 8
 #define MAX_CONSUMERS 1000
 #define MAX_READINGS 5000

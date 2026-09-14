@@ -1,52 +1,67 @@
 # VoltBill One-Command Windows Installer
-# Lead Architect: Akshar Miyani
+# Lead Systems Architect: Akshar Miyani
 # Usage: irm https://raw.githubusercontent.com/miyaniakshar1234/VoltBill/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "`n  =========================================================================" -ForegroundColor Cyan
-Write-Host "    ⚡ Installing VoltBill Utility Engine (Windows x64)" -ForegroundColor White
-Write-Host "    Lead Architect: Akshar Miyani" -ForegroundColor Gray
-Write-Host "  =========================================================================`n" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  =========================================================================" -ForegroundColor Cyan
+Write-Host "    * Installing VoltBill Utility Engine (Windows x64)" -ForegroundColor White
+Write-Host "    Lead Systems Architect: Akshar Miyani" -ForegroundColor Gray
+Write-Host "  =========================================================================" -ForegroundColor Cyan
+Write-Host ""
 
-$InstallDir = "$env:LOCALAPPDATA\VoltBill\bin"
+$BaseDir = "$env:LOCALAPPDATA\VoltBill"
+$InstallDir = Join-Path $BaseDir "bin"
+$ConfigDir = Join-Path $BaseDir "config"
 $ExePath = Join-Path $InstallDir "voltbill.exe"
 
-New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+New-Item -ItemType Directory -Force -Path $InstallDir, $ConfigDir | Out-Null
 
 $Repo = "miyaniakshar1234/VoltBill"
 $ReleaseUrl = "https://github.com/$Repo/releases/latest/download/voltbill-windows-x64.zip"
 
-# Check if compiling locally from repository clone or downloading release
-$LocalExe = Join-Path $PSScriptRoot "bin\voltbill.exe"
-if (Test-Path $LocalExe) {
-    Write-Host "  [1/3] Copying local binary to $InstallDir..." -ForegroundColor Yellow
+$LocalExe = $null
+if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot "bin\voltbill.exe"))) {
+    $LocalExe = Join-Path $PSScriptRoot "bin\voltbill.exe"
+} elseif (Test-Path ".\bin\voltbill.exe") {
+    $LocalExe = (Resolve-Path ".\bin\voltbill.exe").Path
+}
+
+if ($LocalExe) {
+    Write-Host "  [1/3] Installing local binary ($LocalExe)..." -ForegroundColor Yellow
     Copy-Item $LocalExe -Destination $ExePath -Force
+    if (Test-Path "config\tariffs.cfg") {
+        Copy-Item "config\tariffs.cfg" -Destination (Join-Path $ConfigDir "tariffs.cfg") -Force
+    }
 } else {
     Write-Host "  [1/3] Downloading latest release from GitHub ($ReleaseUrl)..." -ForegroundColor Yellow
     $ZipPath = Join-Path $env:TEMP "voltbill-windows-x64.zip"
     try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
         Invoke-WebRequest -Uri $ReleaseUrl -OutFile $ZipPath -UseBasicParsing
-        Expand-Archive -Path $ZipPath -DestinationPath $InstallDir -Force
+        Expand-Archive -Path $ZipPath -DestinationPath $BaseDir -Force
         Remove-Item $ZipPath -Force -ErrorAction SilentlyContinue
     } catch {
-        Write-Host "  [INFO] Release binary not found online yet. Compiling locally..." -ForegroundColor Cyan
+        Write-Host "  [!] Release binary download failed. Attempting local compilation..." -ForegroundColor Yellow
         if (Test-Path "build.ps1") {
-            & .\build.ps1
-            Copy-Item "bin\voltbill.exe" -Destination $ExePath -Force
+            powershell -ExecutionPolicy Bypass -File .\build.ps1
+            if (Test-Path "bin\voltbill.exe") {
+                Copy-Item "bin\voltbill.exe" -Destination $ExePath -Force
+            }
         } else {
-            Write-Host "  [ERROR] Unable to download or compile voltbill." -ForegroundColor Red
+            Write-Host "  [ERROR] Could not download or build voltbill.exe." -ForegroundColor Red
             exit 1
         }
     }
 }
 
-# Add to user PATH if not present
 Write-Host "  [2/3] Configuring Environment PATH..." -ForegroundColor Yellow
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($UserPath -notlike "*$InstallDir*") {
-    [Environment]::SetEnvironmentVariable("Path", "$UserPath;$InstallDir", "User")
-    $env:Path += ";$InstallDir"
+    $NewPath = if ($UserPath.EndsWith(";")) { "$UserPath$InstallDir" } else { "$UserPath;$InstallDir" }
+    [Environment]::SetEnvironmentVariable("Path", $NewPath, "User")
+    $env:Path = "$env:Path;$InstallDir"
     Write-Host "  [+] Added $InstallDir to User PATH." -ForegroundColor Green
 } else {
     Write-Host "  [*] $InstallDir is already present in PATH." -ForegroundColor Gray
@@ -54,12 +69,18 @@ if ($UserPath -notlike "*$InstallDir*") {
 
 Write-Host "  [3/3] Verifying Installation..." -ForegroundColor Yellow
 if (Test-Path $ExePath) {
-    Write-Host "`n  =========================================================================" -ForegroundColor Green
-    Write-Host "    ✓ SUCCESS! VoltBill is installed and ready to use." -ForegroundColor Green
-    Write-Host "    You can now open any terminal and run:" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  =========================================================================" -ForegroundColor Green
+    Write-Host "    SUCCESS: VoltBill is installed and ready to use." -ForegroundColor Green
+    Write-Host "    Location: $ExePath" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "    You can now run in any terminal:" -ForegroundColor White
     Write-Host "        voltbill" -ForegroundColor Cyan
     Write-Host "        voltbill --demo" -ForegroundColor Cyan
-    Write-Host "  =========================================================================`n" -ForegroundColor Green
+    Write-Host "        voltbill scada" -ForegroundColor Cyan
+    Write-Host "  =========================================================================" -ForegroundColor Green
+    Write-Host ""
 } else {
-    Write-Host "  [ERROR] Installation verification failed." -ForegroundColor Red
+    Write-Host "  [ERROR] Installation verification failed: $ExePath not found." -ForegroundColor Red
+    exit 1
 }

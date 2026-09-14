@@ -1,5 +1,5 @@
 Package: voltbill
-Version: 2.0.0
+Version: 2.1.0
 Section: utils
 Priority: optional
 Architecture: amd64
@@ -10,5 +10,6 @@ Description: High-Performance Utility Distribution & Grid Analytics Engine in Na
  VoltBill is an enterprise-grade utility distribution engine and customer management
  system written in native ISO C. Engineered under strict systems programming invariants,
  VoltBill delivers deterministic sub-microsecond calculation latency, TrueColor ANSI TUI,
- solar net-metering, industrial power factor calculation, Time-of-Day tariffs, and
- authentic phone-scannable ISO/IEC 18004 QR generation.
+ solar net-metering, industrial power factor calculation, Time-of-Day tariffs, Modbus RTU/TCP
+ industrial telemetry, automated under-frequency load shedding, and authentic phone-scannable
+ ISO/IEC 18004 QR generation.

@@ -9,7 +9,7 @@
        \/     \___/ |_|  \__| |____/  |_| |_| |_|
 ```
 
-# ⚡ VoltBill v2.0.0
+# ⚡ VoltBill v2.1.0
 ### High-Performance Utility Distribution & Grid Analytics Engine in Native C
 **Cyber-Volt Enterprise Edition**
 
@@ -106,7 +106,7 @@ sudo apt install ./voltbill-linux-amd64.deb
 # Or build .deb directly from repository:
 chmod +x packaging/debian/build_deb.sh
 ./packaging/debian/build_deb.sh
-sudo dpkg -i voltbill_2.0.0_amd64.deb
+sudo dpkg -i voltbill_2.1.0_amd64.deb
 ```
 
 ### 🍺 macOS (Homebrew Tap)
@@ -210,7 +210,7 @@ voltbill --version
 
 ### 1. Main Control Dashboard
 ```text
-  VOLTBILL v2.0.0  │  MAIN CONTROL DASHBOARD  │  ARCHITECT: AKSHAR MIYANI
+  VOLTBILL v2.1.0  │  MAIN CONTROL DASHBOARD  │  ARCHITECT: AKSHAR MIYANI
   SYS_UPTIME: 100.0%  │  RAM: 1.84 MB  │  MEM_MODEL: STATIC ZERO-HEAP  │  SEC: AES/CRC-32
   ────────────────────────────────────────────────────────────────────────────────────
 

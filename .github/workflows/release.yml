@@ -52,7 +52,7 @@ jobs:
         if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
           chmod +x packaging/debian/build_deb.sh
           ./packaging/debian/build_deb.sh
-          cp voltbill_2.0.0_amd64.deb voltbill-linux-amd64.deb
+          cp voltbill_*.deb voltbill-linux-amd64.deb
         fi
 
     - name: Upload Release Asset

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(VoltBill VERSION 2.0.0 LANGUAGES C)
+project(VoltBill VERSION 2.1.0 LANGUAGES C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -70,7 +70,7 @@ install(FILES completions/_voltbill DESTINATION share/zsh/site-functions OPTIONA
 set(CPACK_PACKAGE_NAME "voltbill")
 set(CPACK_PACKAGE_VENDOR "Akshar Miyani")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "VoltBill: Console Electricity Billing & Utility Management System in C")
-set(CPACK_PACKAGE_VERSION "2.0.0")
+set(CPACK_PACKAGE_VERSION "2.1.0")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/miyaniakshar1234/VoltBill")
 set(CPACK_PACKAGE_CONTACT "https://github.com/miyaniakshar1234/VoltBill")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")

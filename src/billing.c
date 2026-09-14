@@ -2,7 +2,7 @@
  * @file billing.c
  * @brief Implementation of meter reading, slab engine, and invoice rendering.
  * @author Akshar Miyani
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 #include "billing.h"

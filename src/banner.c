@@ -2,7 +2,7 @@
  * @file banner.c
  * @brief High-impact Cyberpunk artwork, boot diagnostics, and architectural aura framing.
  * @author Akshar Miyani
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 #include "banner.h"
@@ -25,7 +25,7 @@ void display_onboarding_splash(void) {
 
     const int W = 76;
     ui_card_begin(W, "VOLTBILL // POWER UTILITY DISTRIBUTION ENGINE");
-    ui_card_row(W, CLR_CYAN CLR_BOLD "ENTERPRISE DISTRIBUTION CORE" CLR_RESET, CLR_GREEN CLR_BOLD "v2.0.0 ENTERPRISE" CLR_RESET);
+    ui_card_row(W, CLR_CYAN CLR_BOLD "ENTERPRISE DISTRIBUTION CORE" CLR_RESET, CLR_GREEN CLR_BOLD "v2.1.0 ENTERPRISE" CLR_RESET);
     ui_card_text(W, CLR_GRAY "Next-Generation Systems Architecture Engineered in Pure ISO C (C99/C11)" CLR_RESET);
     ui_card_divider(W);
     ui_card_row(W, CLR_WHITE CLR_BOLD "Lead Systems Architect :" CLR_RESET, CLR_CYAN CLR_BOLD "AKSHAR MIYANI" CLR_RESET);

@@ -2,7 +2,7 @@
  * @file ui.h
  * @brief High-impact Cyberpunk / Volt aesthetic terminal UI engine.
  * @author Akshar Miyani
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 #ifndef UI_H

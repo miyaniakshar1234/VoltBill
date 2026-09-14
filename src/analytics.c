@@ -2,7 +2,7 @@
  * @file analytics.c
  * @brief Implementation of visual analytics, charts, sparklines, and eco telemetry.
  * @author Akshar Miyani
- * @version 2.0.0
+ * @version 2.1.0
  */
 
 #include "analytics.h"

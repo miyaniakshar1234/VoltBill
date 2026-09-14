@@ -1,11 +1,12 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "VoltBill: High-Performance Utility Distribution & Grid Analytics Engine in Native C",
   "homepage": "https://github.com/miyaniakshar1234/VoltBill",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.0.0/voltbill-windows-x64.zip",
+      "url": "https://github.com/miyaniakshar1234/VoltBill/releases/download/v2.1.0/voltbill-windows-x64.zip",
+      "hash": "AC9CACC7B6B170E3017D0CAB06DB7F7931382B3501EA0083650ADF3A059E7880",
       "bin": "voltbill.exe"
     }
   },

@@ -3,7 +3,7 @@ param(
 )
 
 Write-Host "=========================================================================" -ForegroundColor Cyan
-Write-Host "  ⚡ VoltBill Native C Build System (PowerShell)" -ForegroundColor White
+Write-Host "  [+] VoltBill Native C Build System (PowerShell)" -ForegroundColor White
 Write-Host "  Lead Architect: Akshar Miyani" -ForegroundColor Gray
 Write-Host "=========================================================================`n" -ForegroundColor Cyan
 
