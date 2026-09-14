@@ -19,13 +19,11 @@ REPO="miyaniakshar1234/VoltBill"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 
-case "$ARCH" in
-    x86_64)  ARCH_NAME="x64" ;;
-    aarch64|arm64) ARCH_NAME="arm64" ;;
-    *)       ARCH_NAME="x64" ;;
-esac
-
-TAR_NAME="voltbill-${OS}-${ARCH_NAME}.tar.gz"
+if [ "$OS" = "darwin" ]; then
+    TAR_NAME="voltbill-macos-universal.tar.gz"
+else
+    TAR_NAME="voltbill-linux-x64.tar.gz"
+fi
 RELEASE_URL="https://github.com/${REPO}/releases/latest/download/${TAR_NAME}"
 
 echo "  [1/3] Fetching VoltBill binary..."
